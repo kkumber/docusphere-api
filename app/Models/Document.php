@@ -9,4 +9,9 @@ class Document extends Model
 {
     /** @use HasFactory<\Database\Factories\DocumentFactory> */
     use HasFactory;
+
+    function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
