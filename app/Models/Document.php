@@ -10,6 +10,18 @@ class Document extends Model
     /** @use HasFactory<\Database\Factories\DocumentFactory> */
     use HasFactory;
 
+    protected $fillable = [
+        'tracking_no',
+        'title',
+        'instructions',
+        'category',
+        'originating_office',
+        'request_type',
+        'user_id',
+        'status_id',
+        'due_date',
+    ];
+
     function user()
     {
         return $this->belongsTo(User::class);
