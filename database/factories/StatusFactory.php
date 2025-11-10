@@ -17,7 +17,7 @@ class StatusFactory extends Factory
     public function definition(): array
     {
         return [
-            'module' => fake()->randomElement(['document_assignment', 'document_tracking']),
+            'module' => fake()->randomElement(['document', 'document_assignment', 'document_tracking']),
             'code' => fake()->randomElement(['PENDING', 'DELAYED', 'COMPLETED', 'ARCHIVED', 'RELEASED', 'ROUTED', 'RETURNED', 'APPROVED']),
             'label' => fake()->randomElement(['Pending', 'Delayed', 'Completed', 'Archived', 'Released', 'Routed', 'Returned', 'Approved']),
             'is_active' => fake()->boolean(),

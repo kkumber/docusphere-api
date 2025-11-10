@@ -2,7 +2,9 @@
 
 namespace Database\Factories;
 
+use Database\Seeders\StatusSeeder;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Models\Status;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Document>
@@ -24,7 +26,7 @@ class DocumentFactory extends Factory
             'originating_office' => fake()->company(),
             'request_type'=> fake()->randomElement(['For Signature','For Approval','For Information', 'For Review', 'For Action']),
             'user_id' => null,
-            'status_id' => null,
+            'status_id' => Status::where('module', 'document')->InRandomOrder()->value('id'),
             'due_date' => fake()->date(),
         ];
     }

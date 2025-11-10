@@ -18,9 +18,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $statuses = Status::factory()->count(3)->create();
 
+        $this->call([
+            StatusSeeder::class,
+        ]);
 
-        User::factory()->count(10)->has(Document::factory()->count(5)->state(['status_id' => $statuses->random()->id]))->create();
+        User::factory()->count(10)->has(Document::factory()->count(5))->create();
+
     }
 }
