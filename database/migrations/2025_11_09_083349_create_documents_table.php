@@ -22,7 +22,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained();
             $table->foreignId('status_id')->constrained(); // Create a lookup table
             $table->date('due_date')->nullable();
-            $table->timestamps()->useCurrent();
+            $table->timestamps();
         });
     }
 

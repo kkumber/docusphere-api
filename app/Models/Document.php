@@ -26,4 +26,9 @@ class Document extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    function documentFiles()
+    {
+        return $this->hasMany(DocumentFile::class);
+    }
 }
