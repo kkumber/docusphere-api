@@ -22,18 +22,23 @@ class Document extends Model
         'due_date',
     ];
 
-    function user()
+    public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    function documentFiles()
+    public function documentFiles()
     {
         return $this->hasMany(DocumentFile::class);
     }
 
-    function DocResponseFiles() 
+    public function DocResponseFiles() 
     {
         return $this->hasMany(DocResponseFile::class);
+    }
+
+    public function status()
+    {
+        return $this->belongsTo(Status::class);
     }
 }

@@ -25,6 +25,7 @@ class User extends Authenticatable
         'email',
         'password',
         'office',
+        'status'
     ];
 
     /**
@@ -64,4 +65,5 @@ class User extends Authenticatable
     {
         return $this->hasMany(DocResponseFile::class);
     }
+
 }
