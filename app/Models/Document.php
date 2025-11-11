@@ -31,4 +31,9 @@ class Document extends Model
     {
         return $this->hasMany(DocumentFile::class);
     }
+
+    function DocResponseFiles() 
+    {
+        return $this->hasMany(DocResponseFile::class);
+    }
 }

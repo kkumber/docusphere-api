@@ -54,4 +54,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(Document::class);
     }
+
+    public function documentFiles()
+    {
+        return $this->hasMany(DocumentFile::class);
+    }
+
+    public function docResponseFiles()
+    {
+        return $this->hasMany(DocResponseFile::class);
+    }
 }

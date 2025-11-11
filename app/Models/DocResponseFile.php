@@ -5,27 +5,28 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class DocumentFile extends Model
+class DocResponseFile extends Model
 {
-    /** @use HasFactory<\Database\Factories\DocumentFileFactory> */
+    /** @use HasFactory<\Database\Factories\DocResponseFileFactory> */
     use HasFactory;
 
     protected $fillable = [
         'document_id',
+        'uploaded_by',
         'file_name',
         'file_path',
         'mime_type',
         'file_size',
-        'created_by',
-        'is_primary',
+        'remarks'
     ];
 
-    public function user()
+
+    public function user() 
     {
         return $this->belongsTo(User::class);
     }
 
-    public function document()
+    public function document() 
     {
         return $this->belongsTo(Document::class);
     }
