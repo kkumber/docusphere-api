@@ -25,7 +25,9 @@ class DatabaseSeeder extends Seeder
             User::factory()->count(10)->has(Document::factory()->count(5))->create(),
             DocumentFileSeeder::class,
             DocResponseFileSeeder::class,
-            DocumentAssignmentSeeder::class
+            DocumentAssignmentSeeder::class,
+            DocumentTrackingSeeder::class,
+            DocumentVersionSeeder::class,
         ]);
 
 

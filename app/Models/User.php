@@ -53,17 +53,17 @@ class User extends Authenticatable
 
     public function documents()
     {
-        return $this->hasMany(Document::class);
+        return $this->hasMany(Document::class, 'uploaded_by');
     }
 
     public function documentFiles()
     {
-        return $this->hasMany(DocumentFile::class);
+        return $this->hasMany(DocumentFile::class, 'uploaded_by');
     }
 
     public function docResponseFiles()
     {
-        return $this->hasMany(DocResponseFile::class);
+        return $this->hasMany(DocResponseFile::class, 'uploaded_by');
     }
 
     public function documentTrackingSent()
@@ -74,6 +74,11 @@ class User extends Authenticatable
     public function documentTrackingReceived()
     {
         return $this->hasMany(DocumentTracking::class, 'to_user');
+    }
+
+    public function documentVersions()
+    {
+        return $this->hasMany(DocumentVersion::class, 'uploaded_by');
     }
 
 }

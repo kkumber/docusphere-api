@@ -16,7 +16,7 @@ class DocumentFile extends Model
         'file_path',
         'mime_type',
         'file_size',
-        'created_by',
+        'uploaded_by',
         'is_primary',
     ];
 

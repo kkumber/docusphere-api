@@ -17,7 +17,7 @@ class Document extends Model
         'category',
         'originating_office',
         'request_type',
-        'user_id',
+        'uploaded_by',
         'status_id',
         'due_date',
     ];
@@ -42,8 +42,13 @@ class Document extends Model
         return $this->belongsTo(Status::class);
     }
 
-    public function documentTracking()
+    public function documentTrackings()
     {
         return $this->hasMany(DocumentTracking::class);
+    }
+
+    public function documentVersions()
+    {
+        return $this->hasMany(DocumentVersion::class);
     }
 }
