@@ -41,4 +41,9 @@ class Document extends Model
     {
         return $this->belongsTo(Status::class);
     }
+
+    public function documentTracking()
+    {
+        return $this->hasMany(DocumentTracking::class);
+    }
 }

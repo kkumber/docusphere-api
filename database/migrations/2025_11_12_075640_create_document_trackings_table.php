@@ -11,14 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('doc_response_files', function (Blueprint $table) {
+        Schema::create('document_trackings', function (Blueprint $table) {
             $table->id();
             $table->foreignId('document_id')->constrained()->onDelete('cascade');
-            $table->foreignId('uploaded_by')->constrained('users');
-            $table->string('file_name');
-            $table->string('file_path');
-            $table->string('mime_type');
-            $table->integer('file_size');
+            $table->foreignId('from_user')->constrained('users');
+            $table->foreignId('to_user')->constrained('users');
+            $table->foreignId('status_id')->constrained();
             $table->text('remarks')->nullable();
             $table->timestamps();
         });
@@ -29,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('doc_response_files');
+        Schema::dropIfExists('document_trackings');
     }
 };

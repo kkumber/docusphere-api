@@ -66,4 +66,14 @@ class User extends Authenticatable
         return $this->hasMany(DocResponseFile::class);
     }
 
+    public function documentTrackingSent()
+    {
+        return $this->hasMany(DocumentTracking::class, 'from_user');
+    }
+
+    public function documentTrackingReceived()
+    {
+        return $this->hasMany(DocumentTracking::class, 'to_user');
+    }
+
 }
