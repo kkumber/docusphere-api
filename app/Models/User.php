@@ -86,4 +86,9 @@ class User extends Authenticatable
         return $this->hasMany(DocumentComment::class, 'user_id');
     }
 
+    public function auditLogs()
+    {
+        return $this->hasMany(AuditLog::class, 'user_id');
+    }
+
 }

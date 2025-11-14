@@ -28,8 +28,8 @@ class DatabaseSeeder extends Seeder
             DocumentAssignmentSeeder::class,
             DocumentTrackingSeeder::class,
             DocumentVersionSeeder::class,
+            DocumentCommentSeeder::class,
+            AuditLogSeeder::class,
         ]);
-
-
     }
 }

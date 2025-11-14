@@ -56,4 +56,9 @@ class Document extends Model
     {
         return $this->hasMany(DocumentComment::class);
     }
+
+    public function auditLogs()
+    {
+        return $this->hasMany(AuditLog::class);
+    }
 }
