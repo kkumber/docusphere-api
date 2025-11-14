@@ -61,4 +61,9 @@ class Document extends Model
     {
         return $this->hasMany(AuditLog::class);
     }
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
+    }
 }
