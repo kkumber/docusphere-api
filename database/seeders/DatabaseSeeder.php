@@ -30,6 +30,7 @@ class DatabaseSeeder extends Seeder
             DocumentVersionSeeder::class,
             DocumentCommentSeeder::class,
             AuditLogSeeder::class,
+            NotificationSeeder::class,
         ]);
     }
 }
