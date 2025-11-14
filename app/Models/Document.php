@@ -51,4 +51,9 @@ class Document extends Model
     {
         return $this->hasMany(DocumentVersion::class);
     }
+
+    public function documentComments()
+    {
+        return $this->hasMany(DocumentComment::class);
+    }
 }

@@ -81,4 +81,9 @@ class User extends Authenticatable
         return $this->hasMany(DocumentVersion::class, 'uploaded_by');
     }
 
+    public function documentComments()
+    {
+        return $this->hasMany(DocumentComment::class, 'user_id');
+    }
+
 }
