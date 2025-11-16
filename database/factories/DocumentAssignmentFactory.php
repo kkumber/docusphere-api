@@ -23,7 +23,7 @@ class DocumentAssignmentFactory extends Factory
             'document_id' => Document::inRandomOrder()->value('id'),
             'assigned_to' => User::inRandomOrder()->value('id'),
             'assigned_by' => function (array $attributes) {
-                return Document::find($attributes['document_id'])->user_id;
+                return Document::find($attributes['document_id'])->uploaded_by;
             },
             'status_id' => Status::where('module', 'document_assignment')->InRandomOrder()->value('id'),
         ];

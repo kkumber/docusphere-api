@@ -20,7 +20,7 @@ class DocResponseFileFactory extends Factory
         return [
             'document_id' => Document::inRandomOrder()->value('id'),
             'uploaded_by' => function (array $attributes) {
-                return Document::find($attributes['document_id'])->user_id;
+                return Document::find($attributes['document_id'])->uploaded_by;
             },
             'file_name' => fake()->lexify('file_?????.pdf'),
             'file_path' => fake()->filePath(),

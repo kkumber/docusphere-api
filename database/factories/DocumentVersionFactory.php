@@ -21,7 +21,7 @@ class DocumentVersionFactory extends Factory
     {
         return [
             'document_id' => Document::inRandomOrder()->value('id'),
-            'uploaded_by' => User::inRandomOder()->value('id'),
+            'uploaded_by' => User::inRandomOrder()->value('id'),
             'version_number' => 1,
             'previous_version_id' => null,
             'modification_type' => fake()->randomElement(['SIGNED', 'UPDATED']),

@@ -22,7 +22,7 @@ class AuditLogFactory extends Factory
         return [
             'document_id' => Document::inRandomOrder()->value('id'),
             'user_id' => User::inRandomOrder()->value('id'),
-            'activity' => fake()->randomElement(['SIGNED', 'ROUTED', 'RETURNED', 'APPROVED', 'REJECTED', 'COMPLETED', 'ARCHIVED', 'RELEASED']),
+            'action' => fake()->randomElement(['SIGNED', 'ROUTED', 'RETURNED', 'APPROVED', 'REJECTED', 'COMPLETED', 'ARCHIVED', 'RELEASED']),
         ];
     }
 }

@@ -25,7 +25,7 @@ class DocumentFactory extends Factory
             'category' => fake()->randomElement(['Memorandum', 'Unnumbered Memorandum', 'Advisory', 'Endorsement']),
             'originating_office' => fake()->company(),
             'request_type'=> fake()->randomElement(['For Signature','For Approval','For Information', 'For Review', 'For Action']),
-            'user_id' => null,
+            'uploaded_by' => null,
             'status_id' => Status::where('module', 'document')->InRandomOrder()->value('id'),
             'due_date' => fake()->date(),
         ];
