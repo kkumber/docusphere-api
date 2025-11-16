@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
     {
 
         $this->call([
+            RolePermissionSeeder::class,
             StatusSeeder::class,
             User::factory()->count(10)->has(Document::factory()->count(5))->create(),
             DocumentFileSeeder::class,
