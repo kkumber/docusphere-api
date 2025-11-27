@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
+use App\Models\Document;
+
 class DocumentController extends Controller
 {
     /**
@@ -11,7 +13,9 @@ class DocumentController extends Controller
      */
     public function index()
     {
-        //
+        $userId = auth()->user()->id;
+        $documents = Document::where('assigned_to', $userId)->latest()->paginate(10);
+        return response()->json(['documents' => $documents, 'userId' => $userId]);
     }
 
     /**
