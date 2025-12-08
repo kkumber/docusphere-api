@@ -2,13 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ApiResponse;
+use App\Models\Document;
 use Illuminate\Http\Request;
+use App\Models\User;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(ApiResponse $apiResponse)
     {
         $user = auth()->user();
+        $startOfMonth = Carbon::now()->startOfMonth();
+        $endOfMonth = Carbon::now()->endOfMonth();
 
     // Dashboard data for Admin
     // 1. Total number of users
@@ -17,6 +23,32 @@ class DashboardController extends Controller
     // 4. Total number of pending approvals
     // 5. Number of documents created over time (area chart)
     
+    if ($user->hasRole('admin')) {
+        $adminData = [
+        [
+            'title' => 'Total users',
+            'data' =>  User::count(),
+        ],
+        [
+            'title' => 'Total documents',
+            'data' =>  Document::count(),
+        ],
+        [
+            'title' => 'Total assigned documents',
+            'data' =>  Document::where('assigned_to', $user->id)->count(),
+        ],
+        [
+            'title' => 'Total pending approvals',
+            'data' =>  Document::whereIn('status_id', [1, 6])->count(),
+        ],
+        [
+            'title' => 'Documents created over time',
+            'data' => Document::whereBetween('created_at', [$startOfMonth, $endOfMonth])->count(),
+        ]
+    ];
+        $apiResponse::success(data: $adminData);
+
+    }
 
     // Dashboard data for Records
     // 1. Total received today
