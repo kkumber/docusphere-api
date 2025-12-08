@@ -122,7 +122,7 @@ class DashboardController extends Controller
     // 4. Documents delayed
     // 5. Endorsements over time (area chart)
 
-    if ($user->hasRole('chief')) {
+    if ($user->hasRole('chief' || $user->hasRole('staff'))) {
         $chiefData = [
             [
                 'title' => 'Total tasks done',
