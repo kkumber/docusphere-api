@@ -17,45 +17,46 @@ class DashboardController extends Controller
         $endOfMonth = Carbon::now()->endOfMonth();
 
     // Dashboard data for Admin
-    // 1. Total number of users
-    // 2. Total number of documents
-    // 3. Total number of assigned documents
-    // 4. Total number of pending approvals
-    // 5. Number of documents created over time (area chart)
+    // 1. Total number of admin
+    // 2. Total number of records
+    // 3. Total number of sds
+    // 4. Total number of chief and staff
+    // 5. Number of users created over time (area chart)
     
-    if ($user->hasRole('admin')) {
-        $adminData = [
-        [
-            'title' => 'Total users',
-            'data' =>  User::count(),
-        ],
-        [
-            'title' => 'Total documents',
-            'data' =>  Document::count(),
-        ],
-        [
-            'title' => 'Total assigned documents',
-            'data' =>  Document::where('assigned_to', $user->id)->count(),
-        ],
-        [
-            'title' => 'Total pending approvals',
-            'data' =>  Document::whereIn('status_id', [1, 6])->count(),
-        ],
-        [
-            'title' => 'Documents created over time',
-            'data' => Document::whereBetween('created_at', [$startOfMonth, $endOfMonth])->count(),
-        ]
-    ];
-        $apiResponse::success(data: $adminData);
-
-    }
 
     // Dashboard data for Records
-    // 1. Total received today
-    // 2. Documents for routing / distribution
-    // 3. Recently released / dispatched documents
-    // 4. Returned / revisions requests
+    // 1. Total registered documents
+    // 2. Documents archived
+    // 3. Documents completed
+    // 4. Documents delayed
     // 5. Documents received over time (area chart)
+    
+    if ($user->hasRole('records')) {
+        $recordsData = [
+            [
+                'title' => 'Total documents',
+                'data' =>  Document::count(),
+            ],
+            [
+                'title' => 'Total documents archived',
+                'data' =>  User::where('status_id', 2)->count(),
+            ],
+            [
+                'title' => 'Total assigned documents',
+                'data' =>  Document::where('assigned_to', $user->id)->count(),
+            ],
+            [
+                'title' => 'Total pending approvals',
+                'data' =>  Document::whereIn('status_id', [1, 6])->count(),
+            ],
+            [
+                'title' => 'Documents created over time',
+                'data' => Document::whereBetween('created_at', [$startOfMonth, $endOfMonth])->count(),
+            ]
+        ];
+        $apiResponse::success(data: $recordsData);
+
+    }
 
     // Dashboard data for SDS
     // 1. Pending for signature / approval
