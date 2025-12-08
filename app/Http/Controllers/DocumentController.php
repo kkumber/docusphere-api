@@ -14,7 +14,7 @@ class DocumentController extends Controller
     public function index()
     {
         $userId = auth()->user()->id;
-        $documents = Document::where('assigned_to', $userId)->latest()->paginate(10);
+        $documents = Document::where('assigned_to', $userId)->latest()->get();
         return response()->json(['documents' => $documents, 'userId' => $userId]);
     }
 
