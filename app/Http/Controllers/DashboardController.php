@@ -110,7 +110,7 @@ class DashboardController extends Controller
             ],
             [
                 'title' => 'Document handled over time',
-                'data' => DocumentAssignment::where('')->whereBetween('created_at', [$startOfMonth, $endOfMonth])->count(),
+                'data' => DocumentAssignment::where('assigned_to', $user->id)->whereBetween('created_at', [$startOfMonth, $endOfMonth])->count(),
             ]
         ];
     }
@@ -119,9 +119,33 @@ class DashboardController extends Controller
     // 1. Documents for review / endorsement
     // 2. Recently endorsed to SDS
     // 3. Documents awaiting input / notes
-    // 4. Overdue under their cluster
+    // 4. Documents delayed
     // 5. Endorsements over time (area chart)
 
+    if ($user->hasRole('chief')) {
+        $chiefData = [
+            [
+                'title' => 'Total tasks done',
+                'data' =>  DocumentAssignment::where('status_id', 7)->where('assigned_to', $user->id)->count(),
+            ],
+            [
+                'title' => 'Documents for review',
+                'data' =>  DocumentAssignment::where('status_id', 6)->where('assigned_to', $user->id)->count(),
+            ],
+            [
+                'title' => 'Documents routed',
+                'data' =>  DocumentAssignment::where('status_id', 7)->where('assigned_to', $user->id)->count(),
+            ],
+            [
+                'title' => 'Delayed documents',
+                'data' =>  Document::where('status_id', 8)->where('assigned_to', $user->id)->count(),
+            ],
+            [
+                'title' => 'Document handled over time',
+                'data' => DocumentAssignment::where('assigned_to', $user->id)->whereBetween('created_at', [$startOfMonth, $endOfMonth])->count(),
+            ]
+        ];
+    }
     // Dashboard data for Staff
     // 1. My submitted documents
     // 2. Awaiting approval
