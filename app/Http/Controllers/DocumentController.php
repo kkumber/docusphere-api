@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ApiResponse;
 use Illuminate\Http\Request;
 
 use App\Models\Document;
@@ -15,7 +16,7 @@ class DocumentController extends Controller
     {
         $userId = auth()->user()->id;
         $documents = Document::where('assigned_to', $userId)->latest()->get();
-        return response()->json(['documents' => $documents, 'userId' => $userId]);
+        return ApiResponse::success(data: $documents);
     }
 
     /**
