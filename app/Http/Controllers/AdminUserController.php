@@ -13,4 +13,5 @@ class AdminUserController extends Controller
         $users = User::all();
         return ApiResponse::success(data: $users);
     }
+
 }
