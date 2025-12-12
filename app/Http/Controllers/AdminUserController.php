@@ -10,7 +10,7 @@ class AdminUserController extends Controller
 {
     public function index()
     {
-        $users = User::all();
+        $users = User::join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')->all();
         return ApiResponse::success(data: $users);
     }
 

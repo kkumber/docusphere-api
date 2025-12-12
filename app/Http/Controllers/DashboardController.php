@@ -11,7 +11,7 @@ use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-    public function index(ApiResponse $apiResponse)
+    public function index()
     {
         $user = auth()->user();
         $startOfMonth = Carbon::now()->startOfMonth();
@@ -26,10 +26,6 @@ class DashboardController extends Controller
     if ($user->hasRole('admin')) {
         $adminData = [
             [
-                'title' => 'Total admin',
-                'data' => User::role('admin')->count(),
-            ],
-            [
                 'title' => 'Total records',
                 'data' => User::role('records')->count(),
             ],
@@ -38,14 +34,19 @@ class DashboardController extends Controller
                 'data' => User::role('sds')->count(),
             ],
             [
-                'title' => 'Total chief and staff',
-                'data' => User::role('chief_and_staff')->count(),
+                'title' => 'Total chief',
+                'data' => User::role('chief')->count(),
+            ],
+            [
+                'title' => 'Total staff',
+                'data' => User::role('staff')->count(),
             ],
             [
                 'title' => 'Users created over time',
                 'data' => User::whereBetween('created_at', [$startOfMonth, $endOfMonth])->count(),
             ]
             ];
+            return ApiResponse::success(data: $adminData);
     }
 
 
@@ -79,7 +80,7 @@ class DashboardController extends Controller
                 'data' => Document::whereBetween('created_at', [$startOfMonth, $endOfMonth])->count(),
             ]
         ];
-        $apiResponse::success(data: $recordsData);
+        return ApiResponse::success(data: $recordsData);
 
     }
 
@@ -113,6 +114,7 @@ class DashboardController extends Controller
                 'data' => DocumentAssignment::where('assigned_to', $user->id)->whereBetween('created_at', [$startOfMonth, $endOfMonth])->count(),
             ]
         ];
+        return ApiResponse::success(data: $sdsData);
     }
 
     // Dashboard data for Chief
@@ -145,12 +147,9 @@ class DashboardController extends Controller
                 'data' => DocumentAssignment::where('assigned_to', $user->id)->whereBetween('created_at', [$startOfMonth, $endOfMonth])->count(),
             ]
         ];
+        return ApiResponse::success(data: $chiefData);
     }
-    // Dashboard data for Staff
-    // 1. My submitted documents
-    // 2. Awaiting approval
-    // 3. Returned / with corrections
-    // 4. Recently released / completed
-    // 5. Drafts over time (area chart)
+    // At this point user has no role in the database so we just return an error
+    return ApiResponse::error(message: 'Unauthorized role', status: 401);
     }
 }
