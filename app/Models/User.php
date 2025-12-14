@@ -38,6 +38,7 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $hidden = [
         'password',
         'remember_token',
+        'roles'
     ];
 
     /**
@@ -51,6 +52,14 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    protected $appends = ['role'];
+
+    // Custom function to return role automatically when returning user
+    public function getRoleAttribute()
+    {
+        return $this->roles->pluck('name')->first();
     }
 
     public function documents()

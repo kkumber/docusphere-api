@@ -36,10 +36,6 @@ class UserPolicy
      */
     public function updateByAdmin(User $actor, User $target): bool
     {
-        if ($actor->id !== $target->id) {
-            return false;
-        }
-
         if ($target->hasRole('admin')) {
             return false;
         }

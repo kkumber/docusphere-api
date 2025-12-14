@@ -5,43 +5,45 @@ namespace App\Http\Controllers;
 use App\Helpers\ApiResponse;
 use App\Http\Requests\Auth\UpdateUserRequest;
 use App\Models\User;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 
 class AdminUserController extends Controller
 {
+
+    use AuthorizesRequests;
+
     public function index()
     {
-        $users = User::with('roles:name')->get()
-            ->map(function ($user) {
-                return [
-                    'id' => $user->id,
-                    'first_name' => $user->first_name,
-                    'last_name' => $user->last_name,
-                    'email' => $user->email,
-                    'office' => $user->office,
-                    'status' => $user->status,
-                    'role' => $user->roles->first()?->name,
-                ];
-            });
+        $users = User::with('roles')->get();
         return ApiResponse::success(data: $users);
     }
 
+    /* Update user by admin only
+    */
     public function update(User $user, UpdateUserRequest $request)
     {
+        $this->authorize('updateByAdmin', $user);
         $validated = $request->validated();
         $user->update($validated);
-        $userRole = $user->roles->first()?->name;
 
-        if ($userRole !== $validated['role']) {
-            $user->syncRoles([$validated['role']]);
+        $currentRole = $user->roles->first()?->name;
+        $changeRoleRequest = $request->role ? $validated['role'] : $currentRole;
+
+        if ($currentRole !== $changeRoleRequest) {
+            $user->syncRoles([$changeRoleRequest]);
         }
-        return ApiResponse::success(data: [...$user->toArray(), 'role' => $user->roles->first()?->name]);
+        return ApiResponse::success('User updated', data: [$user]); // call the updated role again if user has changed role
     }
 
+    // We are going for soft delete here rather than hard delete. We do it by simply updating status
     public function destroy(User $user)
     {
-        $user->delete();
-        return ApiResponse::success(data: $user);
+        $this->authorize('delete', $user);
+
+        $user->update(['status' => 0]);
+
+        return ApiResponse::success('User deactivated', $user);
     }
 
 }
