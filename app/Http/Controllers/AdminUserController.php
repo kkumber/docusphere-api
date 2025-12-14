@@ -38,7 +38,7 @@ class AdminUserController extends Controller
         return ApiResponse::success(data: [...$user->toArray(), 'role' => $user->roles->first()?->name]);
     }
 
-    public function destroy(User $user, Request $request)
+    public function destroy(User $user)
     {
         $user->delete();
         return ApiResponse::success(data: $user);
