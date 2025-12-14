@@ -23,4 +23,5 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::apiResource('/users', AdminUserController::class);
+    Route::patch('/users/{user}/activate', [AdminUserController::class, 'activateUser']);
 });

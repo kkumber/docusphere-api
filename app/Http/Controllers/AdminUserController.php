@@ -46,4 +46,10 @@ class AdminUserController extends Controller
         return ApiResponse::success('User deactivated', $user);
     }
 
+    public function activateUser(User $user)
+    {
+        $user->update(['status' => 1]);
+        return ApiResponse::success('User activated', $user);
+    }
+
 }
