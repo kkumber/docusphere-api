@@ -14,14 +14,14 @@ return new class extends Migration
         Schema::create('documents', function (Blueprint $table) {
             $table->id();
             $table->string('tracking_no')->unique();
-            $table->string('title')->nullable();
-            $table->text('instructions')->nullable();
+            $table->string('title');
+            $table->text('instructions');
             $table->string('category', 50); // Must be checked in request for validation
-            $table->string('originating_office', 50)->nullable();
+            $table->string('originating_office', 50);
             $table->string('request_type', 50); // Must be checked in request for validation
             $table->foreignId('uploaded_by')->constrained('users');
             $table->foreignId('status_id')->constrained('statuses'); // Create a lookup table
-            $table->date('due_date')->nullable();
+            $table->date('due_date');
             $table->timestamps();
         });
     }
