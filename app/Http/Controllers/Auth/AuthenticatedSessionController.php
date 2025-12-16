@@ -24,8 +24,7 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         $email = $request->input('email');
-        $userExist = User::where('email', $email)->first();
-        $user = [...$userExist->toArray(), 'role' => $userExist->roles->first()?->name];
+        $user = User::where('email', $email)->first();
 
         return ApiResponse::success("Login Success", $user);
     }

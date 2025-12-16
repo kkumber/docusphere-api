@@ -19,6 +19,11 @@ class AdminUserController extends Controller
         return ApiResponse::success(data: $users);
     }
 
+    public function show(User $user)
+    {
+        $this->authorize('updateByAdmin', $user);
+        return ApiResponse::success(data: $user);
+    }
     /* Update user by admin only
     */
     public function update(User $user, UpdateUserRequest $request)
@@ -37,9 +42,13 @@ class AdminUserController extends Controller
     }
 
     // We are going for soft delete here rather than hard delete. We do it by simply updating status
-    public function destroy(User $user)
+    public function deactivateUser(User $user)
     {
         $this->authorize('delete', $user);
+
+        if ($user->status == 0) {
+            return ApiResponse::error('User is already inactive');
+        }
 
         $user->update(['status' => 0]);
 
@@ -48,6 +57,12 @@ class AdminUserController extends Controller
 
     public function activateUser(User $user)
     {
+        $this->authorize('restore', $user);
+
+        if ($user->status == 1) {
+            return ApiResponse::error('User is already active');
+        }
+
         $user->update(['status' => 1]);
         return ApiResponse::success('User activated', $user);
     }
