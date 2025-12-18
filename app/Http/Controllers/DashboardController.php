@@ -56,6 +56,7 @@ class DashboardController extends Controller
                 'area_chart' => [
                     'title' => 'Users created over time',
                     'description' => 'Showing users created over the last 3 months',
+                    'label' => 'Users',
                     'value'  => $usersByCreation,
                 ]
             ];
