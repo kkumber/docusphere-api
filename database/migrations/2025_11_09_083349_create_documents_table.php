@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('category', 50); // Must be checked in request for validation
             $table->string('originating_office', 50);
             $table->string('request_type', 50); // Must be checked in request for validation
-            $table->foreignId('uploaded_by')->constrained('users');
+            $table->foreignId('uploaded_by')->constrained('users')->onDelete('cascade');
             $table->foreignId('status_id')->constrained('statuses'); // Create a lookup table
             $table->date('due_date');
             $table->timestamps();

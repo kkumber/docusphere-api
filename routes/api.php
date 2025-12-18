@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminUserController;
 use App\Helpers\ApiResponse;
+use App\Http\Controllers\DashboardController;
 
 Route::middleware(['auth:sanctum'])->group(function () {
     // Get user info
@@ -16,8 +17,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 
 
-
     Route::apiResource('documents', DocumentController::class);
+    Route::apiResource('dashboard', DashboardController::class);
 });
 
 

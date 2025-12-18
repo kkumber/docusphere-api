@@ -3,11 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\ApiResponse;
+use App\Http\Requests\StoreDocumentRequest;
 use Illuminate\Http\Request;
 
 use App\Models\Document;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Spatie\Permission\Exceptions\UnauthorizedException;
+
 class DocumentController extends Controller
 {
+    use AuthorizesRequests;
+
     /**
      * Display a listing of the resource.
      */
@@ -21,9 +27,13 @@ class DocumentController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreDocumentRequest $request)
     {
-        //
+        // wrap this in try catch and provide more validation
+        $this->authorize('create', Document::class);
+        $validated = $request->validated();
+        $document = Document::create($validated);
+        return ApiResponse::success(data: $document);
     }
 
     /**

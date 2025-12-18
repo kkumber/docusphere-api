@@ -15,7 +15,7 @@ class AdminUserController extends Controller
 
     public function index()
     {
-        $users = User::with('roles')->get();
+        $users = User::with('roles')->latest()->get();
         return ApiResponse::success(data: $users);
     }
 
