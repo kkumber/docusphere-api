@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Helpers\ApiResponse;
 use App\Models\Document;
 use App\Models\DocumentAssignment;
+use App\Models\DocumentTracking;
+use App\Models\Status;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Carbon\Carbon;
@@ -27,12 +29,6 @@ class DashboardController extends Controller
         ->get()
         ->makeHidden(['role']);
 
-        // Dashboard data for Admin
-        // 1. Total number of admin
-        // 2. Total number of records
-        // 3. Total number of sds
-        // 4. Total number of chief and staff
-        // 5. Number of users created over time (area chart)
         if ($user->hasRole('admin')) {
             $adminData = [
                 'cards' => [
@@ -63,31 +59,28 @@ class DashboardController extends Controller
             return ApiResponse::success(data: $adminData);
         }
 
-
-        // Dashboard data for Records
-        // 1. Total registered documents
-        // 2. Documents archived
-        // 3. Documents completed
-        // 4. Documents pendings
-        // 5. Documents received over time (area chart)
         
+        $docStatsByStatus = Document::selectRaw('status_id, COUNT(*) as total')
+        ->groupBy('status_id')
+        ->pluck('total', 'status_id');
+
         if ($user->hasRole('records')) {
             $recordsData = [
                 [
                     'title' => 'Total documents',
-                    'data' =>  Document::count(),
+                    'value' =>  Document::count(),
                 ],
                 [
                     'title' => 'Total documents archived',
-                    'data' =>  User::where('status_id', 2)->count(),
+                    'value' =>  $docStatsByStatus[Status::DOC_ARCHIVED] ?? 0,
                 ],
                 [
                     'title' => 'Total assigned documents',
-                    'data' =>  Document::where('assigned_to', $user->id)->count(),
+                    'value' =>  Document::where('assigned_to', $user->id)->count(),
                 ],
                 [
                     'title' => 'Total pending documents',
-                    'data' =>  Document::whereIn('status_id', [1, 6])->count(),
+                    'value' =>  ($docStatsByStatus[Status::DOC_PENDING] ?? 0) + ($docStatsByStatus[Status::DOC_ASSIGN_PENDING] ?? 0),
                 ],
                 [
                     'title' => 'Documents created over time',
@@ -109,19 +102,19 @@ class DashboardController extends Controller
             $sdsData = [
                 [
                     'title' => 'Total routings',
-                    'data' =>  Document::where('status_id', 7)->count(),
+                    'value' =>  $docStatsByStatus[Status::DOC_ASSIGN_COMPLETED] ?? 0,
                 ],
                 [
                     'title' => 'Total completed tasks',
-                    'data' =>  Document::where('status_id', 8)->count(),
+                    'value' =>  $docStatsByStatus[Status::DOC_ASSIGN_DELAYED] ?? 0,
                 ],
                 [
                     'title' => 'Total returned to records',
-                    'data' => Document::join('document_assignment', 'document.id', '=', 'document_assignment.id')->where('status_id', 3)->count(),
+                    'value' => Document::join('document_assignment', 'document.id', '=', 'document_assignment.id')->where('status_id', Status::DOC_COMPLETED)->count(),
                 ],
                 [
                     'title' => 'Total delayed tasks',
-                    'data' =>  Document::where('status_id', 8)->count(),
+                    'value' =>  $docStatsByStatus[Status::DOC_ASSIGN_DELAYED] ?? 0,
                 ],
                 [
                     'title' => 'Document handled over time',
@@ -137,24 +130,30 @@ class DashboardController extends Controller
         // 3. Documents awaiting input / notes
         // 4. Documents delayed
         // 5. Endorsements over time (area chart)
+        
+        $docAssignment = DocumentAssignment::selectRaw('status_id, COUNT(*) as total')
+        ->where('assigned_to', $user->id)
+        ->groupBy('status_id')
+        ->pluck('total', 'status_id');
 
-        if ($user->hasRole('chief' || $user->hasRole('staff'))) {
+        // Chief and Staff
+        if ($user->hasAnyRole(['chief', 'staff'])) {
             $chiefData = [
                 [
                     'title' => 'Total tasks done',
-                    'data' =>  DocumentAssignment::where('status_id', 7)->where('assigned_to', $user->id)->count(),
+                    'value' =>  $docAssignment[Status::DOC_ASSIGN_COMPLETED] ?? 0,
                 ],
                 [
                     'title' => 'Documents for review',
-                    'data' =>  DocumentAssignment::where('status_id', 6)->where('assigned_to', $user->id)->count(),
+                    'value' =>  $docAssignment[Status::DOC_ASSIGN_PENDING] ?? 0,
                 ],
                 [
                     'title' => 'Documents routed',
-                    'data' =>  DocumentAssignment::where('status_id', 7)->where('assigned_to', $user->id)->count(),
+                    'value' =>  DocumentTracking::where('from_user', $user->id)->count(),
                 ],
                 [
                     'title' => 'Delayed documents',
-                    'data' =>  Document::where('status_id', 8)->where('assigned_to', $user->id)->count(),
+                    'value' =>  $docAssignment[Status::DOC_ASSIGN_DELAYED] ?? 0,
                 ],
                 [
                     'title' => 'Document handled over time',
