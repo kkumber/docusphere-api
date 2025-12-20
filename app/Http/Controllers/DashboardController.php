@@ -98,7 +98,7 @@ class DashboardController extends Controller
                     ],
                     [
                         'title' => 'Total assigned documents',
-                        'value' => Document::where('assigned_to', $user->id)->count(),
+                        'value' => DocumentAssignment::where('assigned_by', $user->id)->count(),
                     ],
                     [
                         'title' => 'Total pending documents',
