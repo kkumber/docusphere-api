@@ -15,6 +15,7 @@ class RecordsController extends Controller
         return ApiResponse::success(data: $documents);
     }
 
+    // Save document in database and cloudinary
     public function store()
     {
         //

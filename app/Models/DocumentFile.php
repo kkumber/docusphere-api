@@ -13,7 +13,8 @@ class DocumentFile extends Model
     protected $fillable = [
         'document_id',
         'file_name',
-        'file_path',
+        'public_id',
+        'folder',
         'mime_type',
         'file_size',
         'uploaded_by',

@@ -17,7 +17,8 @@ class DocumentVersion extends Model
         'previous_version_id',
         'modification_type',
         'file_name',
-        'file_path',
+        'public_id',
+        'folder',
         'mime_type',
         'file_size',
     ];
