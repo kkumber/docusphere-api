@@ -33,6 +33,7 @@ class StoreDocumentRequest extends FormRequest
             'uploaded_by' => ['required', 'integer', Rule::exists('users', 'id')],
             'status_id' => ['required', 'integer', Rule::exists('statuses', 'id')],
             'due_date' => ['required', 'date'],
+            'file' => ['required', 'file', 'mimes:pdf', 'max:10000'],
         ];
     }
 }

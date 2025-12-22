@@ -14,4 +14,9 @@ class RecordsController extends Controller
         $documents = Document::latest()->get();
         return ApiResponse::success(data: $documents);
     }
+
+    public function store()
+    {
+        //
+    }
 }
