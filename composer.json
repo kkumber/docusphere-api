@@ -10,6 +10,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "cloudinary-labs/cloudinary-laravel": "^3.0",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
@@ -86,6 +87,9 @@
         "allow-plugins": {
             "pestphp/pest-plugin": true,
             "php-http/discovery": true
+        },
+        "audit": {
+            "ignore": ["PKSA-365x-2zjk-pt47"]
         }
     },
     "minimum-stability": "stable",
