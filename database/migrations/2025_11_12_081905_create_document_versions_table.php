@@ -20,7 +20,6 @@ return new class extends Migration
             $table->string('modification_type');
             $table->string('file_name');
             $table->string('public_id');
-            $table->string('folder')->nullable();
             $table->string('mime_type');
             $table->integer('file_size');
             $table->timestamps();

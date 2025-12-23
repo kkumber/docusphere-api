@@ -29,7 +29,7 @@ class DocumentPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasRole('records');
+        return $user->hasAnyRole(['records', 'admin']);
     }
 
     /**

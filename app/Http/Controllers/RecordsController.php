@@ -3,11 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\ApiResponse;
+use App\Http\Requests\StoreDocumentRequest;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Models\Document;
+use App\Models\Status;
 
 class RecordsController extends Controller
 {
+    use AuthorizesRequests;
+
     // View all documents in the system
     public function index()
     {
@@ -16,8 +21,27 @@ class RecordsController extends Controller
     }
 
     // Save document in database and cloudinary
-    public function store()
+    public function store(StoreDocumentRequest $request)
     {
-        //
+        $this->authorize('create', Document::class);
+        $validated = $request->validated();
+
+        $user = auth()->user();
+
+        $documentDetails = [
+            'tracking_no' => $validated['tracking_no'],
+            'title' => $validated['title'],
+            'instructions' => $validated['instructions'],
+            'category' => $validated['category'],
+            'originating_office' => $validated['originating_office'],
+            'request_type' => $validated['request_type'],
+            'uploaded_by' => $user->id,
+            'status_id' => Status::DOC_PENDING,
+            'due_date' => $validated['due_date'],
+        ];
+
+        $file = $validated['file'];
+
+        // use document service here to call save db in transaction
     }
 }

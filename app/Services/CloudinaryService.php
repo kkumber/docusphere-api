@@ -2,44 +2,47 @@
 
 namespace App\Services;
 
-use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+use Cloudinary\Cloudinary;
+use Illuminate\Http\UploadedFile;
 
 class CloudinaryService
 {
 
-    /**
-     * @param File $file
-     * @param string $folder
-     */
-    public function uploadToCloudinary($file, string $folder) 
+    protected Cloudinary $cloudinary;
+
+    public function __construct(Cloudinary $cloudinary)
+    {
+        $this->cloudinary = $cloudinary;
+    }
+
+    public function uploadToCloudinary(UploadedFile $file, string $folder): string 
     {
         try {
-            // Create public id
-            $publicIdBase = Str::uuid()->toString();
+            $publicId = (string) Str::uuid();
 
-            // Upload to cloudinary
-            $uploaded = Cloudinary::upload($file->getRealPath(), [
-                'public_id' => $publicIdBase,
-                'folder' => $folder,
-                'resource_type' => 'raw',
-                'type' => 'private' // upload type
-            ]);
+            $uploaded = $this->cloudinary->uploadApi()->upload(
+                $file->getRealPath(),
+                [
+                    'public_id'    => $publicId,
+                    'folder'       => $folder,
+                    'resource_type'=> 'raw',
+                    'type'         => 'private',
+                    'overwrite'    => false,
+                ]
+            );
 
-            $publicId = $uploaded->getPublicId();
+            return $uploaded['public_id']; // includes folder
 
-            return $publicId;
-        } catch (\Exception $e) {
-            Log::error([
+        } catch (\Throwable $e) {
+            Log::error('Cloudinary upload failed', [
                 'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
+                'folder'  => $folder,
             ]);
 
-            return null;
+            throw new \RuntimeException('Failed to upload file to Cloudinary');
         }
-       
     }
 
 
@@ -47,15 +50,13 @@ class CloudinaryService
      * @param string $publicId
      * @param int $expiresInSeconds its in 1 hour as default
      */
-     public function retrieveSignedUrlFromCloudinary(string $publicId, int $expiresInSeconds = 3600)
+     public function generateSignedUrl(string $publicId, int $expiresInSeconds = 3600)
     {
         try {
-            // Cloudinary SDK instance
-            $cld = new \Cloudinary\Cloudinary(); // reads CLOUDINARY_URL from env
 
             $expiresAt = time() + $expiresInSeconds;
             // Generate signed URL
-            $signedUrl = $cld->raw($publicId)
+            $signedUrl = $this->cloudinary->raw($publicId)
                 ->deliveryType('private') // must match uploaded type
                 ->signUrl(true)           // enable signing
                 ->toUrl(['expires_at' => $expiresAt]);
@@ -71,7 +72,6 @@ class CloudinaryService
             return null;
         }
     }
-
 
 
 }
