@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Document;
 use Illuminate\Database\Seeder;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Spatie\Permission\Models\Role;
 
 class DatabaseSeeder extends Seeder
 {
@@ -18,11 +19,15 @@ class DatabaseSeeder extends Seeder
             StatusSeeder::class,
         ]);
 
+        $roles = Role::all();
         // need to assign role here randomly and output the role via join table for user management of admin
         User::factory()
             ->count(10)
             ->has(Document::factory()->count(5))
-            ->create();
+            ->create()
+            ->each(function (User $user) use($roles) {
+                $user->assignRole($roles->random());
+            });
 
         $this->call([
             DocumentFileSeeder::class,
