@@ -20,7 +20,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $roles = Role::all();
-        // need to assign role here randomly and output the role via join table for user management of admin
+
         User::factory()
             ->count(10)
             ->has(Document::factory()->count(5))

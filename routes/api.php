@@ -8,7 +8,7 @@ use App\Helpers\ApiResponse;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\RecordsController;
 
-Route::middleware(['auth:sanctum'])->group(function () {
+Route::middleware(['auth:sanctum', 'role:admin,records,sds,chief,staff'])->group(function () {
     // Get user info
     Route::get('/user', function (Request $request) {
         $user = $request->user();
