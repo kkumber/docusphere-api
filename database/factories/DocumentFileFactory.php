@@ -22,7 +22,7 @@ class DocumentFileFactory extends Factory
         return [
             'document_id' => Document::inRandomOrder()->value('id'),
             'file_name' => fake()->lexify('file_?????.pdf'),
-            'file_path' => fake()->filePath(),
+            'public_id' => fake()->filePath(),
             'mime_type' => fake()->mimeType(),
             'file_size' => fake()->numberBetween(10000, 10000000),
             'uploaded_by' => function (array $attributes) {
