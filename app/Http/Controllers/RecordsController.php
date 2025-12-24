@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Models\Document;
 use App\Models\Status;
+use App\Services\DocumentService;
 
 class RecordsController extends Controller
 {
@@ -21,7 +22,7 @@ class RecordsController extends Controller
     }
 
     // Save document in database and cloudinary
-    public function store(StoreDocumentRequest $request)
+    public function store(StoreDocumentRequest $request, ApiResponse $apiResponse, DocumentService $documentService)
     {
         $this->authorize('create', Document::class);
         $validated = $request->validated();
@@ -43,5 +44,8 @@ class RecordsController extends Controller
         $file = $validated['file'];
 
         // use document service here to call save db in transaction
+        $result = $documentService->saveDocumentWithFileUpload($documentDetails, $user->id, 'documents', $file);
+
+        return $apiResponse->success(data: $result);
     }
 }

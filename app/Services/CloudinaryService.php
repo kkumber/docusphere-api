@@ -39,6 +39,9 @@ class CloudinaryService
             Log::error('Cloudinary upload failed', [
                 'message' => $e->getMessage(),
                 'folder'  => $folder,
+                'file'    => $file,
+                'line'    => $e->getLine(),
+                'filed'    => $e->getFile()
             ]);
 
             throw new \RuntimeException('Failed to upload file to Cloudinary');
