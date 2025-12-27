@@ -23,10 +23,11 @@ class DocResponseFileFactory extends Factory
                 return Document::find($attributes['document_id'])->uploaded_by;
             },
             'file_name' => fake()->lexify('file_?????.pdf'),
-            'file_path' => fake()->filePath(),
+            'public_id' => fake()->filePath(),
             'mime_type' => fake()->mimeType(),
             'file_size' => fake()->numberBetween(10000, 10000000),
             'remarks' => fake()->sentence(),
+            'created_at' => fake()->dateTimeThisYear(),
         ];
     }
 }

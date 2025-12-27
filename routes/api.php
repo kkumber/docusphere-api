@@ -20,6 +20,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::apiResource('documents', DocumentController::class);
     Route::apiResource('dashboard', DashboardController::class);
+
 });
 
 
@@ -29,6 +30,6 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::patch('/users/{user}/deactivate', [AdminUserController::class, 'deactivateUser']);
 });
 
-Route::middleware(['auth:sanctum', 'role:records'])->group(function () {
+Route::middleware(['auth:sanctum', 'role:admin|records'])->group(function () {
     Route::apiResource('/record/documents', RecordsController::class);
 });

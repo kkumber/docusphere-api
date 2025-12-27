@@ -14,7 +14,7 @@ class DocResponseFile extends Model
         'document_id',
         'uploaded_by',
         'file_name',
-        'file_path',
+        'public_id',
         'mime_type',
         'file_size',
         'remarks'

@@ -26,7 +26,7 @@ class DocumentVersionFactory extends Factory
             'previous_version_id' => null,
             'modification_type' => fake()->randomElement(['SIGNED', 'UPDATED']),
             'file_name' => fake()->lexify('file_?????.pdf'),
-            'file_path' => fake()->filePath(),
+            'public_id' => fake()->filePath(),
             'mime_type' => fake()->mimeType(),
             'file_size' => fake()->randomNumber(5),
         ];

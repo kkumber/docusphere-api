@@ -19,6 +19,7 @@ class DashboardController extends Controller
         // Date range (last 3 months)
         $currentMonth = now()->endOfMonth();
         $lastThreeMonths = now()->subMonths(3)->startOfMonth();
+        $currentYear = now()->year;
 
         /**
          * =========================
@@ -27,7 +28,7 @@ class DashboardController extends Controller
          */
         if ($user->hasRole('admin')) {
 
-            $usersByCreation = User::whereBetween('created_at', [$lastThreeMonths, $currentMonth])
+            $usersByCreation = User::whereYear('created_at', $currentYear)
                 ->selectRaw('DATE(created_at) as date, COUNT(*) as total')
                 ->groupBy('date')
                 ->orderBy('date')
@@ -55,7 +56,7 @@ class DashboardController extends Controller
                 ],
                 'area_chart' => [
                     'title' => 'Users created over time',
-                    'description' => 'Showing users created over the last 3 months',
+                    'description' => 'Showing users created over the year '.$currentYear,
                     'label' => 'Users',
                     'value' => $usersByCreation,
                 ],

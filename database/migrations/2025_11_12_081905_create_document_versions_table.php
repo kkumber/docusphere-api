@@ -19,7 +19,7 @@ return new class extends Migration
             $table->foreignId('previous_version_id')->nullable()->constrained('document_versions');
             $table->string('modification_type');
             $table->string('file_name');
-            $table->string('file_path');
+            $table->string('public_id');
             $table->string('mime_type');
             $table->integer('file_size');
             $table->timestamps();

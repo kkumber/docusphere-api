@@ -22,12 +22,13 @@ class DocumentFactory extends Factory
             'tracking_no' => fake()->unique()->uuid(),
             'title' => fake()->word(),
             'instructions' => fake()->sentence(),
-            'category' => fake()->randomElement(['Memorandum', 'Unnumbered Memorandum', 'Advisory', 'Endorsement']),
+            'category' => fake()->randomElement(['memorandum', 'unnumbered_memorandum', 'advisory', 'endorsement']),
             'originating_office' => fake()->company(),
-            'request_type'=> fake()->randomElement(['For Signature','For Approval','For Information', 'For Review', 'For Action']),
+            'request_type'=> fake()->randomElement(['for_signature','for_approval','for_information', 'for_review', 'for_response']),
             'uploaded_by' => null,
             'status_id' => Status::where('module', 'document')->InRandomOrder()->value('id'),
             'due_date' => fake()->date(),
+            'created_at' => fake()->dateTimeThisYear(),
         ];
     }
 }
