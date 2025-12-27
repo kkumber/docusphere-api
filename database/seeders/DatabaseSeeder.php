@@ -31,13 +31,14 @@ class DatabaseSeeder extends Seeder
 
         //create a admin user
         $admin = User::create([
-            'first_name' => 'Admin',
-            'last_name' => 'User',
-            'email' => 'admin@example',
+            'first_name' => 'Docusphere',
+            'last_name' => 'Admin',
+            'email' => 'admin@example.com',
             'password' => bcrypt('password'),
             'office' => 'Admin Office',
         ]);
         $admin->email_verified_at = now();
+        $admin->save();
         $admin->assignRole('admin');
 
 
