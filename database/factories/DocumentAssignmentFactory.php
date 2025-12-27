@@ -26,6 +26,7 @@ class DocumentAssignmentFactory extends Factory
                 return Document::find($attributes['document_id'])->uploaded_by;
             },
             'status_id' => Status::where('module', 'document_assignment')->InRandomOrder()->value('id'),
+            'created_at' => fake()->dateTimeThisYear(),
         ];
     }
 }

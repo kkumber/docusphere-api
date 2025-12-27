@@ -4,80 +4,122 @@ namespace App\Services;
 
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
-use Cloudinary\Cloudinary;
 use Illuminate\Http\UploadedFile;
 
 class CloudinaryService
 {
+    private $cloudinary;
 
-    protected Cloudinary $cloudinary;
-
-    public function __construct(Cloudinary $cloudinary)
+    public function __construct()
     {
-        $this->cloudinary = $cloudinary;
+        // Initialize Cloudinary using the new SDK
+        $this->cloudinary = new \Cloudinary\Cloudinary([
+            'cloud' => [
+                'cloud_name' => config('cloudinary.cloud_name'),
+                'api_key'    => config('cloudinary.api_key'),
+                'api_secret' => config('cloudinary.api_secret'),
+            ],
+            'url' => [
+                'secure' => true
+            ]
+        ]);
     }
 
     public function uploadToCloudinary(UploadedFile $file, string $folder): string 
     {
         try {
+            if (!$file->isValid()) {
+                throw new \RuntimeException('Invalid file upload');
+            }
+
             $publicId = (string) Str::uuid();
+            $filePath = $file->getRealPath();
 
-            $uploaded = $this->cloudinary->uploadApi()->upload(
-                $file->getRealPath(),
-                [
-                    'public_id'    => $publicId,
-                    'folder'       => $folder,
-                    'resource_type'=> 'raw',
-                    'type'         => 'private',
-                    'overwrite'    => false,
-                ]
-            );
+            Log::info('Attempting Cloudinary upload', [
+                'file' => $file->getClientOriginalName(),
+                'size' => $file->getSize(),
+                'folder' => $folder,
+            ]);
 
-            return $uploaded['public_id']; // includes folder
+            // Upload using the SDK's uploadApi
+            $result = $this->cloudinary->uploadApi()->upload($filePath, [
+                'public_id' => $folder . '/' . $publicId,
+                'resource_type' => 'raw',
+                'type' => 'private',
+                'overwrite' => false,
+            ]);
+
+            // DELETE THIS ON PROD
+            Log::info('Cloudinary upload response', [
+                'result' => $result,
+            ]);
+
+            if (!isset($result['public_id'])) {
+                throw new \RuntimeException('Upload succeeded but no public_id in response');
+            }
+
+            Log::info('Upload successful', ['public_id' => $result['public_id']]);
+            return $result['public_id'];
 
         } catch (\Throwable $e) {
             Log::error('Cloudinary upload failed', [
                 'message' => $e->getMessage(),
                 'folder'  => $folder,
-                'file'    => $file,
+                'file'    => $file->getClientOriginalName(),
                 'line'    => $e->getLine(),
-                'filed'    => $e->getFile()
+                'file_path' => $e->getFile(),
             ]);
 
-            throw new \RuntimeException('Failed to upload file to Cloudinary');
+            throw new \RuntimeException('Failed to upload file to Cloudinary: ' . $e->getMessage());
         }
     }
 
-
-    /**
-     * @param string $publicId
-     * @param int $expiresInSeconds its in 1 hour as default
-     */
-     public function generateSignedUrl(string $publicId, int $expiresInSeconds = 3600)
+    public function generateSignedUrl(string $publicId, int $expiresInSeconds = 3600): string
     {
         try {
+            // Generate a private download URL
+            $options = [
+                'resource_type' => 'raw',
+                'type' => 'private',
+                'sign_url' => true,
+                'secure' => true,
+                'attachment' => true,
+                'expires_at' => time() + $expiresInSeconds,
+            ];
 
-            $expiresAt = time() + $expiresInSeconds;
-            // Generate signed URL
-            $signedUrl = $this->cloudinary->raw($publicId)
-                ->deliveryType('private') // must match uploaded type
-                ->signUrl(true)           // enable signing
-                ->toUrl(['expires_at' => $expiresAt]);
+            // Build the URL using Cloudinary's URL builder
+            $url = $this->cloudinary->image($publicId)
+                ->toUrl();
 
-            return $signedUrl;
-        } catch (\Exception $e) {
-            Log::error([
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
+            // For raw files, we need to manually construct the URL
+            $cloudName = config('cloudinary.cloud_name');
+            $signature = $this->generateSignature($publicId, $expiresInSeconds);
+            
+            $url = sprintf(
+                'https://res.cloudinary.com/%s/raw/private/s--%s--/%s',
+                $cloudName,
+                $signature,
+                $publicId
+            );
+
+            return $url;
+
+        } catch (\Throwable $e) {
+            Log::error('Cloudinary URL generation failed', [
+                'public_id' => $publicId,
+                'message'   => $e->getMessage()
             ]);
 
-            return null;
+            throw new \RuntimeException('Failed to generate secure access link.');
         }
     }
 
-
+    private function generateSignature(string $publicId, int $expiresAt): string
+    {
+        $apiSecret = config('cloudinary.api_secret');
+        $timestamp = time() + $expiresAt;
+        
+        $toSign = "timestamp={$timestamp}&public_id={$publicId}";
+        return hash('sha256', $toSign . $apiSecret);
+    }
 }
-
-
-?>

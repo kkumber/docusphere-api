@@ -28,6 +28,7 @@ class DocumentFactory extends Factory
             'uploaded_by' => null,
             'status_id' => Status::where('module', 'document')->InRandomOrder()->value('id'),
             'due_date' => fake()->date(),
+            'created_at' => fake()->dateTimeThisYear(),
         ];
     }
 }

@@ -24,7 +24,6 @@ class RecordsController extends Controller
     // Save document in database and cloudinary
     public function store(StoreDocumentRequest $request, ApiResponse $apiResponse, DocumentService $documentService)
     {
-        $this->authorize('create', Document::class);
         $validated = $request->validated();
 
         $user = auth()->user();

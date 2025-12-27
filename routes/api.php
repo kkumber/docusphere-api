@@ -8,7 +8,7 @@ use App\Helpers\ApiResponse;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\RecordsController;
 
-Route::middleware(['auth:sanctum', 'role:admin,records,sds,chief,staff'])->group(function () {
+Route::middleware(['auth:sanctum'])->group(function () {
     // Get user info
     Route::get('/user', function (Request $request) {
         $user = $request->user();
@@ -20,6 +20,7 @@ Route::middleware(['auth:sanctum', 'role:admin,records,sds,chief,staff'])->group
 
     Route::apiResource('documents', DocumentController::class);
     Route::apiResource('dashboard', DashboardController::class);
+
 });
 
 
@@ -29,6 +30,6 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::patch('/users/{user}/deactivate', [AdminUserController::class, 'deactivateUser']);
 });
 
-Route::middleware(['auth:sanctum', 'role:records'])->group(function () {
+Route::middleware(['auth:sanctum', 'role:admin|records'])->group(function () {
     Route::apiResource('/record/documents', RecordsController::class);
 });

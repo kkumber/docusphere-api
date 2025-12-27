@@ -13,7 +13,7 @@ class StoreDocumentRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -24,14 +24,12 @@ class StoreDocumentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'tracking_no' => ['required', 'string', 'unique'],
+            'tracking_no' => ['required', 'string', 'unique:documents'],
             'title' => ['required', 'string'],
             'instructions' => ['required', 'string'],
             'category' => ['required', 'string', Rule::in(['advisory', 'endorsement', 'memorandum', 'unnumbered_memorandum'])],
             'originating_office' => ['required', 'string'],
             'request_type' => ['required', 'string', Rule::in(['for_signature', 'for_approval', 'for_information', 'for_endorsement', 'for_response'])],
-            'uploaded_by' => ['required', 'integer', Rule::exists('users', 'id')],
-            'status_id' => ['required', 'integer', Rule::exists('statuses', 'id')],
             'due_date' => ['required', 'date'],
             'file' => ['required', 'file', 'mimes:pdf', 'max:10240'],
         ];
