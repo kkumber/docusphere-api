@@ -7,6 +7,7 @@ use App\Http\Requests\StoreDocumentRequest;
 use Illuminate\Http\Request;
 
 use App\Models\Document;
+use App\Models\DocumentAssignment;
 use App\Models\DocumentFile;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Spatie\Permission\Exceptions\UnauthorizedException;
@@ -21,7 +22,7 @@ class DocumentController extends Controller
     public function index()
     {
         $userId = auth()->user()->id;
-        $documents = Document::where('assigned_to', $userId)->latest()->get();
+        $documents = DocumentAssignment::where('assigned_to', $userId)->latest()->get();
         return ApiResponse::success(data: $documents);
     }
 
