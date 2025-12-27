@@ -7,6 +7,7 @@ use App\Http\Requests\StoreDocumentRequest;
 use Illuminate\Http\Request;
 
 use App\Models\Document;
+use App\Models\DocumentFile;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Spatie\Permission\Exceptions\UnauthorizedException;
 
@@ -39,9 +40,10 @@ class DocumentController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Document $document)
     {
-        //
+        $documentPublicId = DocumentFile::where('document_id', $document->id)->first()->public_id;
+        return ApiResponse::success(data: $documentPublicId);
     }
 
     /**
