@@ -29,6 +29,18 @@ class DatabaseSeeder extends Seeder
                 $user->assignRole($roles->random());
             });
 
+        //create a admin user
+        $admin = User::create([
+            'first_name' => 'Admin',
+            'last_name' => 'User',
+            'email' => 'admin@example',
+            'password' => bcrypt('password'),
+            'office' => 'Admin Office',
+        ]);
+        $admin->email_verified_at = now();
+        $admin->assignRole('admin');
+
+
         $this->call([
             DocumentFileSeeder::class,
             DocResponseFileSeeder::class,
