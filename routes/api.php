@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminUserController;
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DocumentAssignmentController;
 use App\Http\Controllers\RecordsController;
 
 Route::middleware(['auth:sanctum'])->group(function () {
@@ -20,6 +21,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::apiResource('documents', DocumentController::class);
     Route::apiResource('dashboard', DashboardController::class);
+    Route::apiResource('document_assignments', DocumentAssignmentController::class)->only(['store']);
 
 });
 
