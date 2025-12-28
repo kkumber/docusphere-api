@@ -2,9 +2,11 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\RequestType;
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Enum;
 
 class StoreDocumentRequest extends FormRequest
 {
@@ -29,7 +31,7 @@ class StoreDocumentRequest extends FormRequest
             'instructions' => ['required', 'string'],
             'category' => ['required', 'string', Rule::in(['advisory', 'endorsement', 'memorandum', 'unnumbered_memorandum'])],
             'originating_office' => ['required', 'string'],
-            'request_type' => ['required', 'string', Rule::in(['for_signature', 'for_approval', 'for_information', 'for_endorsement', 'for_response', 'for_review'])],
+            'request_type' => ['required', new Enum(RequestType::class)],
             'due_date' => ['required', 'date'],
             'file' => ['required', 'file', 'mimes:pdf', 'max:10240'],
         ];

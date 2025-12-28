@@ -14,6 +14,9 @@ class DocumentAssignment extends Model
         'document_id',
         'assigned_by',
         'assigned_to',
+        'request_type',
+        'instructions',
+        'due_date',
         'status_id',
         'completion_date'
     ];

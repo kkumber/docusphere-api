@@ -19,6 +19,7 @@ return new class extends Migration
             $table->foreignId('assigned_to')->constrained('users');
             $table->text('instructions');
             $table->foreignId('status_id')->constrained();
+            $table->date('due_date')->nullable();
             $table->date('completion_date')->nullable();
             $table->timestamps();
         });

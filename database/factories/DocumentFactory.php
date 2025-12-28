@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\RequestType;
 use Database\Seeders\StatusSeeder;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Models\Status;
@@ -24,7 +25,7 @@ class DocumentFactory extends Factory
             'instructions' => fake()->sentence(),
             'category' => fake()->randomElement(['memorandum', 'unnumbered_memorandum', 'advisory', 'endorsement']),
             'originating_office' => fake()->company(),
-            'request_type'=> fake()->randomElement(['for_signature','for_approval','for_information', 'for_review', 'for_response']),
+            'request_type'=> fake()->randomElement(array_column(RequestType::cases(), 'value')),
             'uploaded_by' => null,
             'status_id' => Status::where('module', 'document')->InRandomOrder()->value('id'),
             'due_date' => fake()->date(),
