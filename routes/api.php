@@ -21,7 +21,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::apiResource('documents', DocumentController::class);
     Route::apiResource('dashboard', DashboardController::class);
-    Route::apiResource('document_assignments', DocumentAssignmentController::class)->only(['store']);
+    Route::apiResource('document/assignments', DocumentAssignmentController::class)->only(['index', 'store']);
 
 });
 

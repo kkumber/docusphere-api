@@ -19,7 +19,21 @@ class DocumentAssignmentController extends Controller
      */
     public function index()
     {
-        //
+        $userId = auth()->user()->id;
+        $documents = DocumentAssignment::with('document')->where('assigned_to', $userId)->latest()->get()->map(function ($documentAssignment) {
+            return [
+                'document_id' => $documentAssignment->document->id,
+                'instructions' => $documentAssignment->instructions,
+                'status' => $documentAssignment->status->id,
+                'request_type' => $documentAssignment->request_type,
+                'due_date' => $documentAssignment->due_date,
+                'tracking_no' => $documentAssignment->document->tracking_no,
+                'title' => $documentAssignment->document->title,
+                'category' => $documentAssignment->document->category,
+                'originating_office' => $documentAssignment->document->originating_office,
+            ];
+        });
+        return ApiResponse::success(data: $documents);
     }
 
     /**
