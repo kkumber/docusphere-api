@@ -2,11 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ApiResponse;
+use App\Http\Requests\StoreDocumentAssignmentRequest;
 use App\Models\DocumentAssignment;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
 
 class DocumentAssignmentController extends Controller
 {
+    use AuthorizesRequests;
+
     /**
      * Display a listing of the resource.
      */
@@ -18,9 +25,16 @@ class DocumentAssignmentController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreDocumentAssignmentRequest $request)
     {
-        //
+        $user = auth()->user();
+        $validated = $request->validated();
+        $targetUser = User::where('id', $validated['assigned_to'])->first();
+
+        $this->authorize('assign', [DocumentAssignment::class, $targetUser]);
+       
+        $documentAssignment = DocumentAssignment::create($validated);
+        return ApiResponse::success(data: $documentAssignment); 
     }
 
     /**
