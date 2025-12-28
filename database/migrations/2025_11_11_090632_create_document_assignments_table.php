@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('request_type', 50); // Must be checked in request for validation
             $table->foreignId('assigned_by')->constrained('users');
             $table->foreignId('assigned_to')->constrained('users');
-            $table->text('instructions');
+            $table->text('instructions')->nullable();
             $table->foreignId('status_id')->constrained();
             $table->date('due_date')->nullable();
             $table->date('completion_date')->nullable();
