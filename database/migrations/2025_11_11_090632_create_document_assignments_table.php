@@ -14,8 +14,10 @@ return new class extends Migration
         Schema::create('document_assignments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('document_id')->constrained()->onDelete('cascade');
+            $table->string('request_type', 50); // Must be checked in request for validation
             $table->foreignId('assigned_by')->constrained('users');
             $table->foreignId('assigned_to')->constrained('users');
+            $table->text('instructions');
             $table->foreignId('status_id')->constrained();
             $table->date('completion_date')->nullable();
             $table->timestamps();

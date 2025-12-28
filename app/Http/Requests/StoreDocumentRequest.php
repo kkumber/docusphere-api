@@ -29,7 +29,7 @@ class StoreDocumentRequest extends FormRequest
             'instructions' => ['required', 'string'],
             'category' => ['required', 'string', Rule::in(['advisory', 'endorsement', 'memorandum', 'unnumbered_memorandum'])],
             'originating_office' => ['required', 'string'],
-            'request_type' => ['required', 'string', Rule::in(['for_signature', 'for_approval', 'for_information', 'for_endorsement', 'for_response'])],
+            'request_type' => ['required', 'string', Rule::in(['for_signature', 'for_approval', 'for_information', 'for_endorsement', 'for_response', 'for_review'])],
             'due_date' => ['required', 'date'],
             'file' => ['required', 'file', 'mimes:pdf', 'max:10240'],
         ];
