@@ -22,7 +22,7 @@ class DocumentController extends Controller
     public function index()
     {
         $userId = auth()->user()->id;
-        $documents = DocumentAssignment::where('assigned_to', $userId)->latest()->get();
+        $documents = DocumentAssignment::with('document')->where('assigned_to', $userId)->latest()->get();
         return ApiResponse::success(data: $documents);
     }
 
