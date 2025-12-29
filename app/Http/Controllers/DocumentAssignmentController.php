@@ -24,7 +24,7 @@ class DocumentAssignmentController extends Controller
             return [
                 'document_id' => $documentAssignment->document->id,
                 'instructions' => $documentAssignment->instructions,
-                'status' => $documentAssignment->status->id,
+                'status_id' => $documentAssignment->status->id,
                 'request_type' => $documentAssignment->request_type,
                 'due_date' => $documentAssignment->due_date,
                 'tracking_no' => $documentAssignment->document->tracking_no,
