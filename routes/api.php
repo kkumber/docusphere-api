@@ -8,6 +8,7 @@ use App\Helpers\ApiResponse;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentAssignmentController;
 use App\Http\Controllers\RecordsController;
+use App\Models\User;
 
 Route::middleware(['auth:sanctum'])->group(function () {
     // Get user info
@@ -16,6 +17,19 @@ Route::middleware(['auth:sanctum'])->group(function () {
         $userWithRole = [...$user->toArray(), 'role' => $user->roles->first()?->name];
 
         return ApiResponse::success(data: $userWithRole);
+    });
+
+    // Get All Users by Role
+    Route::get('/users/role', function () {
+        $usersByRole = [
+            'admin' => User::role('admin')->get(['id', 'first_name', 'last_name', 'office']),
+            'records' => User::role('records')->get(['id', 'first_name', 'last_name', 'office']),
+            'sds' => User::role('sds')->get(['id', 'first_name', 'last_name', 'office']),
+            'chief' => User::role('chief')->get(['id', 'first_name', 'last_name', 'office']),
+            'staff' => User::role('staff')->get(['id', 'first_name', 'last_name', 'office']),
+        ];
+        
+        return ApiResponse::success(data: $usersByRole);
     });
 
 
