@@ -20,7 +20,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 
     // Get All Users by Role
-    Route::get('/users/role', function () {
+    Route::get('/users/roles', function () {
         $usersByRole = [
             'admin' => User::role('admin')->get(['id', 'first_name', 'last_name', 'office']),
             'records' => User::role('records')->get(['id', 'first_name', 'last_name', 'office']),
