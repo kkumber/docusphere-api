@@ -22,7 +22,7 @@ class DocumentAssignmentController extends Controller
         $userId = auth()->user()->id;
         $documents = DocumentAssignment::with('document')->where('assigned_to', $userId)->latest()->get()->map(function ($documentAssignment) {
             return [
-                'document_id' => $documentAssignment->document->id,
+                'id' => $documentAssignment->document->id,
                 'instructions' => $documentAssignment->instructions,
                 'status_id' => $documentAssignment->status->id,
                 'request_type' => $documentAssignment->request_type,
@@ -49,8 +49,6 @@ class DocumentAssignmentController extends Controller
         foreach ($targetUsers as $targetUser) {
             $this->authorize('assign', [DocumentAssignment::class, $targetUser]);
         }
-
-
        
         $documentAssignment = DocumentAssignment::create($validated);
         return ApiResponse::success(data: $documentAssignment); 
