@@ -43,9 +43,14 @@ class DocumentAssignmentController extends Controller
     {
         $user = auth()->user();
         $validated = $request->validated();
-        $targetUser = User::where('id', $validated['assigned_to'])->first();
+        // we are expecting an array of user ids
+        $targetUsers = User::findOrFail($validated['assigned_to']);
 
-        $this->authorize('assign', [DocumentAssignment::class, $targetUser]);
+        foreach ($targetUsers as $targetUser) {
+            $this->authorize('assign', [DocumentAssignment::class, $targetUser]);
+        }
+
+
        
         $documentAssignment = DocumentAssignment::create($validated);
         return ApiResponse::success(data: $documentAssignment); 

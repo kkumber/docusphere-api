@@ -20,7 +20,7 @@ return new class extends Migration
             $table->text('instructions')->nullable();
             $table->foreignId('status_id')->constrained();
             $table->date('due_date')->nullable();
-            $table->date('completion_date')->nullable();
+            $table->date('completion_date')->nullable(); // will be updated upon mark as complete
             $table->timestamps();
         });
     }
