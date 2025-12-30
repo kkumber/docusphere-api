@@ -19,16 +19,29 @@ class DocumentAssignmentPolicy
 
     public function assign(User $user, User $target): bool
     {
+        // Admin can assign to anyone
         if ($user->hasRole('admin')) {
             return true;
         }
 
-        if (!$user->hasRole('sds') && $target->hasRole('records')) {
+        // Records can assign ONLY to SDS
+        if ($user->hasRole('records')) {
+            return $target->hasRole('sds');
+        }
+
+        // SDS can assign to anyone
+        if ($user->hasRole('sds')) {
+            return true;
+        }
+
+        // Chiefs and Staff cannot assign to Records
+        if ($target->hasRole('records')) {
             return false;
         }
 
-        return $user->hasRole('records') && $target->hasRole('sds');
+        return false;
     }
+
     /**
      * Determine whether the user can view the model.
      */
