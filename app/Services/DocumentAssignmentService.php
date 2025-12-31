@@ -2,9 +2,11 @@
 
 namespace App\Services;
 
+use App\Events\DocumentAssigned;
 use App\Models\DocumentAssignment;
 use App\Models\Status;
 use App\Models\User;
+use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Support\Facades\DB;
 
 class DocumentAssignmentService 
@@ -19,7 +21,7 @@ class DocumentAssignmentService
     {
         $assignments = [];
         foreach ($targetUsers as $targetUser) {
-            $assignments = [
+            $assignments[] = [
                 'document_id' => $request['document_id'],
                 'request_type' => $request['request_type'],
                 'assigned_to' => $targetUser,
@@ -32,15 +34,13 @@ class DocumentAssignmentService
             ];
         }
 
-        return DB::transaction(function () use ($assignments) {
+        DB::transaction(function () use ($assignments) {
             DocumentAssignment::insert($assignments);
         });
+
+        event(new DocumentAssigned($assignments));
     }
 
-    private function createNotification()
-    {
-        //
-    }
 }
 
 
