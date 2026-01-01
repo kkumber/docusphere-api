@@ -36,9 +36,9 @@ class DocumentAssignmentService
 
         DB::transaction(function () use ($assignments) {
             DocumentAssignment::insert($assignments);
+            event(new DocumentAssigned($assignments));
         });
 
-        event(new DocumentAssigned($assignments));
     }
 
 }

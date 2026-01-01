@@ -6,6 +6,7 @@ use App\Helpers\ApiResponse;
 use App\Http\Requests\StoreDocumentAssignmentRequest;
 use App\Models\DocumentAssignment;
 use App\Models\User;
+use App\Services\DocumentAssignmentService;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
@@ -13,6 +14,10 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 class DocumentAssignmentController extends Controller
 {
     use AuthorizesRequests;
+
+
+    public function __construct(protected DocumentAssignmentService $documentAssignmentService)
+    {}
 
     /**
      * Display a listing of the resource.
@@ -50,8 +55,8 @@ class DocumentAssignmentController extends Controller
             $this->authorize('assign', [DocumentAssignment::class, $targetUser]);
         }
        
-        $documentAssignment = DocumentAssignment::create($validated);
-        return ApiResponse::success(data: $documentAssignment); 
+        $this->documentAssignmentService->createDocumentAssignment($user, $targetUsers, $validated);
+        return ApiResponse::success('Assignments created',data: []); 
     }
 
     /**

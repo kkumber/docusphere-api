@@ -7,8 +7,10 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\DB;
 use App\Models\Status;
+use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 
-class TrackDocumentAssignment
+
+class TrackDocumentAssignment implements ShouldQueue, ShouldDispatchAfterCommit
 {
     /**
      * Create the event listener.
