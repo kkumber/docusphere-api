@@ -3,14 +3,11 @@
 namespace App\Listeners;
 
 use App\Events\DocumentAssigned;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\DB;
 use App\Models\Status;
-use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 
 
-class TrackDocumentAssignment implements ShouldQueue, ShouldDispatchAfterCommit
+class TrackDocumentAssignment
 {
     /**
      * Create the event listener.

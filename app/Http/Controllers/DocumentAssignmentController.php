@@ -16,7 +16,7 @@ class DocumentAssignmentController extends Controller
     use AuthorizesRequests;
 
 
-    public function __construct(protected DocumentAssignmentService $documentAssignmentService)
+    public function __construct(public DocumentAssignmentService $documentAssignmentService)
     {}
 
     /**
@@ -24,6 +24,7 @@ class DocumentAssignmentController extends Controller
      */
     public function index()
     {
+        // MIGHT NEED TO UPDATE IT TO ONLY GET THE LATEST IF SAME DOC ID HAS BEEN ASSIGNED MORE THAN ONCE
         $userId = auth()->user()->id;
         $documents = DocumentAssignment::with('document')->where('assigned_to', $userId)->latest()->get()->map(function ($documentAssignment) {
             return [
@@ -55,7 +56,7 @@ class DocumentAssignmentController extends Controller
             $this->authorize('assign', [DocumentAssignment::class, $targetUser]);
         }
        
-        $this->documentAssignmentService->createDocumentAssignment($user, $targetUsers, $validated);
+        $this->documentAssignmentService->createDocumentAssignment($user, $validated);
         return ApiResponse::success('Assignments created',data: []); 
     }
 

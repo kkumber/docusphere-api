@@ -4,13 +4,10 @@ namespace App\Listeners;
 
 use App\Events\DocumentAssigned;
 use App\Models\Notification;
-use App\Models\User;
-use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
-class NotifyUserOfAssignment implements ShouldQueue, ShouldDispatchAfterCommit
+class NotifyUserOfAssignment
 {
     /**
      * Create the event listener.
@@ -27,6 +24,10 @@ class NotifyUserOfAssignment implements ShouldQueue, ShouldDispatchAfterCommit
     {
         $notifyUsers = [];
 
+        Log::info('Creating notifications for users', [
+            'assignments' => $event->assignments
+        ]);
+        
         foreach ($event->assignments as $assignment) {
             $notifyUsers[] = [
                 'user_id' => $assignment['assigned_to'],
