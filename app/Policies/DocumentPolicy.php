@@ -49,7 +49,7 @@ class DocumentPolicy
      */
     public function delete(User $user, Document $document): bool
     {
-        return $user->hasRole('records');
+        return $user->hasRole('records') || $user->hasRole('admin');
     }
 
     /**

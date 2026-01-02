@@ -48,4 +48,11 @@ class RecordsController extends Controller
 
         return $apiResponse->success(data: $result);
     }
+
+    public function delete(Document $document)
+    {
+        $this->authorize('delete', $document);
+        $document->delete();
+        return ApiResponse::success('Document deleted');
+    }
 }
