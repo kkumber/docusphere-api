@@ -21,6 +21,10 @@ class DocumentPolicy
      */
     public function view(User $user, Document $document): bool
     {
+        if ($user->hasRole('admin') || $user->hasRole('records')) {
+            return true;
+        }
+
         return $document->assigned_to == $user->id;
     }
 
