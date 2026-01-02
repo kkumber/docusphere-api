@@ -34,7 +34,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 
 
-    Route::apiResource('documents', DocumentController::class);
+    Route::apiResource('documents', DocumentController::class)->only(['show']);
     Route::apiResource('dashboard', DashboardController::class);
     Route::apiResource('document/assignments', DocumentAssignmentController::class)->only(['index', 'store']);
     Route::apiResource('notifications', NotificationController::class)->only(['index', 'show']);
