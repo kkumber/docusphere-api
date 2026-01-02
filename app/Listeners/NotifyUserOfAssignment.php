@@ -23,10 +23,6 @@ class NotifyUserOfAssignment
     public function handle(DocumentAssigned $event)
     {
         $notifyUsers = [];
-
-        Log::info('Creating notifications for users', [
-            'assignments' => $event->assignments
-        ]);
         
         foreach ($event->assignments as $assignment) {
             $notifyUsers[] = [
