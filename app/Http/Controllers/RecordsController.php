@@ -41,9 +41,10 @@ class RecordsController extends Controller
         ];
 
         $file = $validated['file'];
+        $folder = 'documents' . '/' . $validated['category'];
 
         // use document service here to call save db in transaction
-        $result = $documentService->saveDocumentWithFileUpload($documentDetails, $user->id, 'documents', $file);
+        $result = $documentService->saveDocumentWithFileUpload($documentDetails, $user->id, $folder, $file);
 
         return $apiResponse->success(data: $result);
     }

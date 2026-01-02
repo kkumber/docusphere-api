@@ -19,6 +19,11 @@ class DocumentAssignmentPolicy
 
     public function assign(User $user, User $target): bool
     {
+        // User cannot assign to themselves
+        if ($user->id === $target->id) {
+            return false;
+        }
+
         // Admin can assign to anyone
         if ($user->hasRole('admin')) {
             return true;

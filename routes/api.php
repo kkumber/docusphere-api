@@ -7,6 +7,7 @@ use App\Http\Controllers\AdminUserController;
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentAssignmentController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\RecordsController;
 use App\Models\User;
 
@@ -33,9 +34,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 
 
-    Route::apiResource('documents', DocumentController::class);
+    Route::apiResource('documents', DocumentController::class)->only(['show']);
     Route::apiResource('dashboard', DashboardController::class);
     Route::apiResource('document/assignments', DocumentAssignmentController::class)->only(['index', 'store']);
+    Route::apiResource('notifications', NotificationController::class)->only(['index', 'show']);
 
 });
 

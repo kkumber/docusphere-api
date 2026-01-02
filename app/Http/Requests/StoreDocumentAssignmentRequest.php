@@ -29,8 +29,6 @@ class StoreDocumentAssignmentRequest extends FormRequest
             'assigned_to' => ['required', 'array', 'min:1'],
             'assigned_to.*' => ['integer', 'exists:users,id'],
             'assigned_to' => ['required', 'exists:users,id'],
-            'assigned_by' => ['required', 'exists:users,id'],
-            'status_id' => ['required', 'exists:statuses,id'],
             'instructions' => ['string'],
             'due_date' => ['date'],            
         ];

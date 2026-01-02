@@ -15,32 +15,12 @@ use Spatie\Permission\Exceptions\UnauthorizedException;
 class DocumentController extends Controller
 {
     use AuthorizesRequests;
-
-    /**
-     * Display listing of documents assigned to user
-     */
-    public function index()
-    {
-        
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreDocumentRequest $request)
-    {
-        // wrap this in try catch and provide more validation
-        $this->authorize('create', Document::class);
-        $validated = $request->validated();
-        $document = Document::create($validated);
-        return ApiResponse::success(data: $document);
-    }
-
     /**
      * Display the specified resource.
      */
     public function show(Document $document)
     {
+        // call cloudinary service to generate signed url
         $documentPublicId = DocumentFile::where('document_id', $document->id)->first()->public_id;
         return ApiResponse::success(data: $documentPublicId);
     }
@@ -53,11 +33,5 @@ class DocumentController extends Controller
         //
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
-    }
+
 }
