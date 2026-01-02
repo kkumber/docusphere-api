@@ -29,11 +29,7 @@ class DocumentController extends Controller
      */
     public function store(StoreDocumentRequest $request)
     {
-        // wrap this in try catch and provide more validation
-        $this->authorize('create', Document::class);
-        $validated = $request->validated();
-        $document = Document::create($validated);
-        return ApiResponse::success(data: $document);
+        //
     }
 
     /**
