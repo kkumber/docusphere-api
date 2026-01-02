@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\DocumentAssignment;
+use App\Models\Notification;
 use App\Models\Status;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -37,9 +38,9 @@ class DocumentAssignmentService
         });
     }
 
-    private function createNotification()
+    private function createNotification(User $user, array $request)
     {
-        //
+        
     }
 }
 
