@@ -29,6 +29,7 @@ class DocumentAssignmentController extends Controller
         $documents = DocumentAssignment::with('document')->where('assigned_to', $userId)->latest()->get()->map(function ($documentAssignment) {
             return [
                 'id' => $documentAssignment->document->id,
+                'doc_assignment_id' => $documentAssignment->id,
                 'instructions' => $documentAssignment->instructions,
                 'status_id' => $documentAssignment->status->id,
                 'request_type' => $documentAssignment->request_type,
