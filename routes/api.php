@@ -40,7 +40,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('document/assignments', DocumentAssignmentController::class)->only(['index', 'store']);
     Route::apiResource('notifications', NotificationController::class)->only(['index', 'show']);
 
-    Route::prefix('document-actions/{documentAssignment}')->group(function () {
+    Route::prefix('document-actions/document/{document}')->group(function () {
         Route::get('details', [DocumentActionController::class, 'details']);
     });
 

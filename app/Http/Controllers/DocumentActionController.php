@@ -11,29 +11,32 @@ class DocumentActionController extends Controller
 {
     //
 
-    public function details(DocumentAssignment $documentAssignment)
+    public function details(Document $document)
     {
-        $documentAssignment->load(['document']);
-
-        $response = [
+        $user = auth()->user();
+        $assignment = DocumentAssignment::with(['assigner', 'status'])
+            ->where('document_id', $document->id)
+            ->where('assigned_to', $user->id)
+            ->latest()
+            ->first();
+    
+        return ApiResponse::success(data: [
             'document' => [
-                'tracking_no' => $documentAssignment->document->tracking_no,
-                'title' => $documentAssignment->document->title,
-                'category' => $documentAssignment->document->category,
-                'originating_office' => $documentAssignment->document->originating_office,
-                'created_at' => $documentAssignment->document->created_at,
-                'updated_at' => $documentAssignment->document->updated_at,
+                'tracking_no' => $document->tracking_no,
+                'title' => $document->title,
+                'category' => $document->category,
+                'originating_office' => $document->originating_office,
+                'created_at' => $document->created_at,
+                'updated_at' => $document->updated_at,
             ],
-            'assignment' => [
-                'assigned_by' => $documentAssignment->assigner->first_name . ' ' . $documentAssignment->assigner->last_name,
-                'request_type' => $documentAssignment->request_type,
-                'due_date' => $documentAssignment->due_date,
-                'instructions' => $documentAssignment->instructions,
-                'status' => $documentAssignment->status->label
-            ]
-
-        ];
-        
-        return ApiResponse::success(data: $response);
+            'assignment' => $assignment ? [
+                'assigned_by' => $assignment->assigner->first_name . ' ' . $assignment->assigner->last_name,
+                'request_type' => $assignment->request_type,
+                'due_date' => $assignment->due_date,
+                'instructions' => $assignment->instructions,
+                'status' => $assignment->status->label,
+            ] : null,
+        ]);
     }
+    
 }
