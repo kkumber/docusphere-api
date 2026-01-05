@@ -6,6 +6,7 @@ use App\Models\Document;
 use Illuminate\Http\Request;
 use App\Helpers\ApiResponse;
 use App\Models\DocumentAssignment;
+use App\Models\Status;
 
 class DocumentActionController extends Controller
 {
@@ -40,6 +41,26 @@ class DocumentActionController extends Controller
     }
 
     public function acknowledge(Document $document)
+    {
+        $user = auth()->user();
+        $assignment = DocumentAssignment::with(['assigner', 'status'])
+        ->where('document_id', $document->id)
+        ->where('assigned_to', $user->id)
+        ->latest()
+        ->first();
+
+        if($assignment->status_id === Status::DOC_ASSIGN_ACKNOWLEDGED) {
+            return ApiResponse::error(message: 'Document is already acknowledged');
+        }
+
+        $updated = $assignment->update([
+            'status_id' => Status::DOC_ASSIGN_ACKNOWLEDGED,
+        ]);
+
+        return ApiResponse::success(data: $updated);
+    }
+
+    public function markAsDone(Document $document) 
     {
         //
     }

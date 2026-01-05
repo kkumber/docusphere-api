@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('audit_logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users');
-            $table->foreignId('document_id')->constrained('documents');
+            $table->foreignId('performed_by')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('document_assignment_id')->constrained('document_assignments')->cascadeOnDelete();
             $table->string('action');
             $table->timestamps();
         });

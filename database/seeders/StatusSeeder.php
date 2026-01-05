@@ -14,6 +14,8 @@ class StatusSeeder extends Seeder
      */
     public function run(): void
     {
+        Status::truncate();
+
          $statuses = [
             // document
             ['module' => 'document', 'code' => 'PENDING', 'label' => 'Pending'],
