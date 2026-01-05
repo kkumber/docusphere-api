@@ -33,8 +33,10 @@ class DocumentAssignmentService
 
         DB::transaction(function () use ($assignments, $request) {
 
+            // check if document is already released or has an assignment
             $docHasAssignment = DocumentAssignment::where('document_id', $request['document_id'])->lockForUpdate()->exists();
 
+            // update document status to released
             if (!$docHasAssignment) {
                 $document = Document::findOrFail($request['document_id']);
                 $document->status_id = Status::DOC_RELEASED;
@@ -43,6 +45,7 @@ class DocumentAssignmentService
 
             DocumentAssignment::insert($assignments);
 
+            // Call Notifyuser and TrackDocumentAssignment listeners
             event(new DocumentAssigned($assignments));
 
         });

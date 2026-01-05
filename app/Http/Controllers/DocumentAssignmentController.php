@@ -72,7 +72,7 @@ class DocumentAssignmentController extends Controller
             });
 
             if ($existingAssignment) {
-                return ApiResponse::error(message: 'An assignment is already pending for this user: ' . $targetUser->first_name . ' ' . $targetUser->last_name);
+                return ApiResponse::error(message: 'Cannot assign document:  ' . $targetUser->first_name . ' ' . $targetUser->last_name . ' already has a pending assignment.');
             }
         }
        
