@@ -38,5 +38,10 @@ class DocumentActionController extends Controller
             ] : null,
         ]);
     }
+
+    public function acknowledge(Document $document)
+    {
+        //
+    }
     
 }

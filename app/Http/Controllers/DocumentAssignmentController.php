@@ -59,20 +59,22 @@ class DocumentAssignmentController extends Controller
         $validated = $request->validated();
         // we are expecting an array of user ids
         $targetUsers = User::findOrFail($validated['assigned_to']);
-
         $documentAssignments = DocumentAssignment::with('document', 'assignee', 'status')->get();
 
+
         foreach ($targetUsers as $targetUser) {
+
             $this->authorize('assign', [DocumentAssignment::class, $targetUser]);
 
             // Check if an assignment already exists for this user and is pending
-            $existingAssignment = $documentAssignments->first(function($assignment) use ($targetUser) {
+            $existingAssignment = $documentAssignments->first(function($assignment) use ($targetUser, $validated) {
                 return $assignment->assignee->id === $targetUser->id
-                    && $assignment->status->id === Status::DOC_ASSIGN_PENDING;
+                    && $assignment->status->id === Status::DOC_ASSIGN_PENDING
+                    && $assignment->document->id === $validated['document_id'];
             });
 
             if ($existingAssignment) {
-                return ApiResponse::error(message: 'Cannot assign document:  ' . $targetUser->first_name . ' ' . $targetUser->last_name . ' already has a pending assignment.');
+                return ApiResponse::error(message: 'Cannot assign document:  ' . $targetUser->first_name . ' ' . $targetUser->last_name . ' already has a pending assignment with this document.');
             }
         }
        
