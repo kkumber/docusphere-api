@@ -25,7 +25,7 @@ class DocumentPolicy
             return true;
         }
 
-        return $document->assigned_to == $user->id;
+        return $document->documentAssignments()->where('assigned_to', $user->id)->exists();
     }
 
     /**

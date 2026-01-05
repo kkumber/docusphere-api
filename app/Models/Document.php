@@ -32,6 +32,11 @@ class Document extends Model
         return $this->hasMany(DocumentFile::class);
     }
 
+    public function documentAssignments()
+    {
+        return $this->hasMany(DocumentAssignment::class);
+    }
+
     public function DocResponseFiles() 
     {
         return $this->hasMany(DocResponseFile::class);

@@ -5,11 +5,12 @@ namespace App\Http\Controllers;
 use App\Helpers\ApiResponse;
 use App\Http\Requests\StoreDocumentAssignmentRequest;
 use App\Models\DocumentAssignment;
+use App\Models\Status;
 use App\Models\User;
 use App\Services\DocumentAssignmentService;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-
+use RuntimeException;
 
 class DocumentAssignmentController extends Controller
 {
@@ -53,8 +54,20 @@ class DocumentAssignmentController extends Controller
         // we are expecting an array of user ids
         $targetUsers = User::findOrFail($validated['assigned_to']);
 
+        $documentAssignments = DocumentAssignment::with('document', 'assignee', 'status')->get();
+
         foreach ($targetUsers as $targetUser) {
             $this->authorize('assign', [DocumentAssignment::class, $targetUser]);
+
+            // Check if an assignment already exists for this user and is pending
+            $existingAssignment = $documentAssignments->first(function($assignment) use ($targetUser) {
+                return $assignment->assignee->id === $targetUser->id
+                    && $assignment->status->id === Status::DOC_ASSIGN_PENDING;
+            });
+
+            if ($existingAssignment) {
+                return ApiResponse::error(message: 'An assignment is already pending for this user: ' . $targetUser->first_name . ' ' . $targetUser->last_name);
+            }
         }
        
         $this->documentAssignmentService->createDocumentAssignment($user, $validated);
