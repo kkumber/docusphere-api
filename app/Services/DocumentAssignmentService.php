@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Events\DocumentAssigned;
+use App\Models\Document;
 use App\Models\DocumentAssignment;
 use App\Models\Notification;
 use App\Models\Status;
@@ -13,6 +14,8 @@ class DocumentAssignmentService
 {
     public function createDocumentAssignment(User $user, array $request)
     {
+
+
         $assignments = [];
         foreach ($request['assigned_to'] as $targetUser) {
             $assignments[] = [
@@ -28,10 +31,22 @@ class DocumentAssignmentService
             ];
         }
 
-        DB::transaction(function () use ($assignments) {
+        DB::transaction(function () use ($assignments, $request) {
+
+            $docHasAssignment = DocumentAssignment::where('document_id', $request['document_id'])->lockForUpdate()->exists();
+
+            if (!$docHasAssignment) {
+                $document = Document::findOrFail($request['document_id']);
+                $document->status_id = Status::DOC_RELEASED;
+                $document->save();
+            }
+
             DocumentAssignment::insert($assignments);
+
             event(new DocumentAssigned($assignments));
+
         });
+
     }
 
 }
