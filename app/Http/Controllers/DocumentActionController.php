@@ -15,6 +15,7 @@ use App\Services\CloudinaryService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class DocumentActionController extends Controller
 {
@@ -67,6 +68,7 @@ class DocumentActionController extends Controller
                 'status_id' => Status::DOC_ASSIGN_ACKNOWLEDGED,
             ]);
             
+
             $docAssignmentAction = DocAssignmentAction::create([
                 'document_assignment_id' => $assignment->id,
                 'action' => 'acknowledged',
