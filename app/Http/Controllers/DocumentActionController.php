@@ -5,15 +5,20 @@ namespace App\Http\Controllers;
 use App\Models\Document;
 use Illuminate\Http\Request;
 use App\Helpers\ApiResponse;
+use App\Http\Requests\StoreAttachmentRequest;
 use App\Models\DocAssignmentAction;
 use App\Models\DocumentAssignment;
+use App\Models\DocumentFile;
 use App\Models\Status;
 use App\Models\User;
+use App\Services\CloudinaryService;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 
 class DocumentActionController extends Controller
 {
-    //
+    use AuthorizesRequests;
 
     public function details(Document $document)
     {
@@ -192,11 +197,12 @@ class DocumentActionController extends Controller
         return ApiResponse::success('Task reviewed');
     }
 
-    public function respond(Document $document) 
+    public function respond(Document $document, StoreAttachmentRequest $request, CloudinaryService $cloudinaryService) 
     {
         $user = auth()->user();
 
         $assignment = $this->getDocumentAssignment($document, $user);
+        $validatedFile = $this->authorize($request);
 
         if (!$assignment) {
             return ApiResponse::error(message: 'No active assignment found');
@@ -206,7 +212,28 @@ class DocumentActionController extends Controller
             return ApiResponse::error(message: 'You can no longer perform this action on the document.');
         }
 
-        // need to append file in the document file table then show all appending/response/supporting documents in the view alongside the current document
+
+        // need to append file in the document file table then show all appending/response/supporting documents in the view alongside the current document. USE a service
+        // DB::transaction(function () use ($assignment, $user, $validatedFile, $document) {
+
+        //     $updated = $assignment->update([
+        //         'status_id' => Status::DOC_ASSIGN_RESPONDED,
+        //     ]);
+            
+        //     $attachment = DocumentFile::create([
+        //         'document_id' => $document->id,
+        //         'user_id' => $user->id,
+        //         'file_name' => $validatedFile['file']->getClientOriginalName(),
+        //     ]);
+
+        //     $docAssignmentAction = DocAssignmentAction::create([
+        //         'document_assignment_id' => $assignment->id,
+        //         'action' => 'responded',
+        //         'performed_by' => $user->id,
+        //     ]);
+        // });
+
+        return ApiResponse::success('Task responded');
     }
 
     private function getDocumentAssignment(Document $document, User $user) {
