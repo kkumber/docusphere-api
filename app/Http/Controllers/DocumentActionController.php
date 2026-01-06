@@ -53,7 +53,7 @@ class DocumentActionController extends Controller
             return ApiResponse::error(message: 'No active assignment found');
         }
 
-        if($assignment->status_id !== Status::DOC_ASSIGN_PENDING) {
+        if($assignment->status_id === Status::DOC_ASSIGN_COMPLETED) {
             return ApiResponse::error(message: 'You can no longer perform this action on the document.');
         }
 
@@ -69,7 +69,7 @@ class DocumentActionController extends Controller
             ]);
         });
 
-        return ApiResponse::success('Document acknowledged');
+        return ApiResponse::success('Task acknowledged');
     }
 
     public function markAsDone(Document $document) 
@@ -82,11 +82,132 @@ class DocumentActionController extends Controller
             return ApiResponse::error(message: 'No active assignment found');
         }
 
-        if($assignment->status_id === Status::DOC_ASSIGN_PENDING || $assignment->status_id === Status::DOC_ASSIGN_PENDING) {
-            return ApiResponse::error(message: 'You must acknowledge, approve, respond or sign the document before marking it as completed.');
+        if($assignment->status_id === Status::DOC_ASSIGN_PENDING || $assignment->status_id === Status::DOC_ASSIGN_DELAYED) {
+            return ApiResponse::error(message: 'You must acknowledge, approve, respond, review or sign the document before marking it as completed.');
         }
+
+        if ($assignment->status_id !== Status::DOC_ASSIGN_COMPLETED) {
+            return ApiResponse::error(message: 'You can no longer perform this action on the document.');
+        }
+
+        DB::transaction(function () use ($assignment, $user) {
+            $updated = $assignment->update([
+                'status_id' => Status::DOC_ASSIGN_COMPLETED,
+            ]);
+            
+            $docAssignmentAction = DocAssignmentAction::create([
+                'document_assignment_id' => $assignment->id,
+                'action' => 'completed',
+                'performed_by' => $user->id,
+            ]);
+        });
+
+        return ApiResponse::success('Task marked as completed');
     }
     
+    public function approve(Document $document)
+    {
+        $user = auth()->user();
+
+        $assignment = $this->getDocumentAssignment($document, $user);
+
+        if (!$assignment) {
+            return ApiResponse::error(message: 'No active assignment found');
+        }
+
+        if($assignment->status_id === Status::DOC_ASSIGN_COMPLETED) {
+            return ApiResponse::error(message: 'You can no longer perform this action on the document.');
+        }
+
+        DB::transaction(function () use ($assignment, $user) {
+            $updated = $assignment->update([
+                'status_id' => Status::DOC_ASSIGN_APPROVED,
+            ]);
+            
+            $docAssignmentAction = DocAssignmentAction::create([
+                'document_assignment_id' => $assignment->id,
+                'action' => 'approved',
+                'performed_by' => $user->id,
+            ]);
+        });
+
+        return ApiResponse::success('Task approved');
+    }
+
+    public function sign(Document $document) 
+    {
+        $user = auth()->user();
+
+        $assignment = $this->getDocumentAssignment($document, $user);
+
+        if (!$assignment) {
+            return ApiResponse::error(message: 'No active assignment found');
+        }
+
+        if($assignment->status_id === Status::DOC_ASSIGN_COMPLETED) {
+            return ApiResponse::error(message: 'You can no longer perform this action on the document.');
+        }
+        
+        DB::transaction(function () use ($assignment, $user) {
+            $updated = $assignment->update([
+                'status_id' => Status::DOC_ASSIGN_SIGNED,
+            ]);
+            
+            $docAssignmentAction = DocAssignmentAction::create([
+                'document_assignment_id' => $assignment->id,
+                'action' => 'signed',
+                'performed_by' => $user->id,
+            ]);
+        });
+
+        return ApiResponse::success('Task signed');
+    }
+
+    public function review(Document $document) 
+    {
+        $user = auth()->user();
+
+        $assignment = $this->getDocumentAssignment($document, $user);
+
+        if (!$assignment) {
+            return ApiResponse::error(message: 'No active assignment found');
+        }
+
+        if($assignment->status_id === Status::DOC_ASSIGN_COMPLETED) {
+            return ApiResponse::error(message: 'You can no longer perform this action on the document.');
+        }
+
+        DB::transaction(function () use ($assignment, $user) {
+            $updated = $assignment->update([
+                'status_id' => Status::DOC_ASSIGN_REVIEWED,
+            ]);
+            
+            $docAssignmentAction = DocAssignmentAction::create([
+                'document_assignment_id' => $assignment->id,
+                'action' => 'reviewed',
+                'performed_by' => $user->id,
+            ]);
+        });
+
+        return ApiResponse::success('Task reviewed');
+    }
+
+    public function respond(Document $document) 
+    {
+        $user = auth()->user();
+
+        $assignment = $this->getDocumentAssignment($document, $user);
+
+        if (!$assignment) {
+            return ApiResponse::error(message: 'No active assignment found');
+        }
+
+        if($assignment->status_id === Status::DOC_ASSIGN_COMPLETED) {
+            return ApiResponse::error(message: 'You can no longer perform this action on the document.');
+        }
+
+        // need to append file in the document file table then show all appending/response/supporting documents in the view alongside the current document
+    }
 
     private function getDocumentAssignment(Document $document, User $user) {
         return DocumentAssignment::with(['assigner', 'status'])
