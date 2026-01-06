@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Document;
 use Illuminate\Http\Request;
 use App\Helpers\ApiResponse;
+use App\Models\DocAssignmentAction;
 use App\Models\DocumentAssignment;
 use App\Models\Status;
+use Illuminate\Support\Facades\DB;
 
 class DocumentActionController extends Controller
 {
@@ -49,15 +51,27 @@ class DocumentActionController extends Controller
         ->latest()
         ->first();
 
-        if($assignment->status_id === Status::DOC_ASSIGN_ACKNOWLEDGED) {
-            return ApiResponse::error(message: 'Document is already acknowledged');
+        if (!$assignment) {
+            return ApiResponse::error(message: 'No active assignment found');
         }
 
-        $updated = $assignment->update([
-            'status_id' => Status::DOC_ASSIGN_ACKNOWLEDGED,
-        ]);
+        if($assignment->status_id !== Status::DOC_ASSIGN_PENDING) {
+            return ApiResponse::error(message: 'You can no longer perform this action on the document.');
+        }
 
-        return ApiResponse::success(data: $updated);
+        DB::transaction(function () use ($assignment, $user) {
+            $updated = $assignment->update([
+                'status_id' => Status::DOC_ASSIGN_ACKNOWLEDGED,
+            ]);
+            
+            $docAssignmentAction = DocAssignmentAction::create([
+                'document_assignment_id' => $assignment->id,
+                'action' => 'acknowledged',
+                'performed_by' => $user->id,
+            ]);
+        });
+
+        return ApiResponse::success('Document acknowledged');
     }
 
     public function markAsDone(Document $document) 
