@@ -8,6 +8,7 @@ use App\Helpers\ApiResponse;
 use App\Models\DocAssignmentAction;
 use App\Models\DocumentAssignment;
 use App\Models\Status;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 class DocumentActionController extends Controller
@@ -45,11 +46,8 @@ class DocumentActionController extends Controller
     public function acknowledge(Document $document)
     {
         $user = auth()->user();
-        $assignment = DocumentAssignment::with(['assigner', 'status'])
-        ->where('document_id', $document->id)
-        ->where('assigned_to', $user->id)
-        ->latest()
-        ->first();
+
+        $assignment = $this->getDocumentAssignment($document, $user);
 
         if (!$assignment) {
             return ApiResponse::error(message: 'No active assignment found');
@@ -76,7 +74,26 @@ class DocumentActionController extends Controller
 
     public function markAsDone(Document $document) 
     {
-        //
+        $user = auth()->user();
+
+        $assignment = $this->getDocumentAssignment($document, $user);
+
+        if (!$assignment) {
+            return ApiResponse::error(message: 'No active assignment found');
+        }
+
+        if($assignment->status_id === Status::DOC_ASSIGN_PENDING || $assignment->status_id === Status::DOC_ASSIGN_PENDING) {
+            return ApiResponse::error(message: 'You must acknowledge, approve, respond or sign the document before marking it as completed.');
+        }
+    }
+    
+
+    private function getDocumentAssignment(Document $document, User $user) {
+        return DocumentAssignment::with(['assigner', 'status'])
+        ->where('document_id', $document->id)
+        ->where('assigned_to', $user->id)
+        ->latest()
+        ->first();
     }
     
 }

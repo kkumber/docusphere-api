@@ -23,15 +23,18 @@ class Status extends Model
     public const DOC_ASSIGN_ACKNOWLEDGED  = 7;
     public const DOC_ASSIGN_APPROVED      = 8;
     public const DOC_ASSIGN_SIGNED        = 9;
-    public const DOC_ASSIGN_COMPLETED     = 10;
-    public const DOC_ASSIGN_DELAYED       = 11;
+    public const DOC_ASSIGN_REVIEWED      = 10;
+    public const DOC_ASSIGN_RESPONDED     = 11;
+    public const DOC_ASSIGN_COMPLETED     = 12;
+    public const DOC_ASSIGN_DELAYED       = 13;
 
-        
+
     // document_tracking
-    public const DOC_TRACK_ROUTED     = 12;
-    public const DOC_TRACK_COMPLETED  = 13;
-    public const DOC_TRACK_RETURNED   = 14;
-    public const DOC_TRACK_APPROVED   = 15;
+    public const DOC_TRACK_ROUTED     = 14;
+    public const DOC_TRACK_COMPLETED  = 15;
+    public const DOC_TRACK_RETURNED   = 16;
+    public const DOC_TRACK_APPROVED   = 17;
+
 
 
     protected $fillable = [
