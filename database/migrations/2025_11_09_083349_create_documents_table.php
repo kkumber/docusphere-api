@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('request_type', 50); // Must be checked in request for validation
             $table->foreignId('uploaded_by')->constrained('users')->onDelete('cascade');
             $table->foreignId('status_id')->constrained('statuses'); // Create a lookup table
-            $table->date('due_date');
+            $table->date('due_date')->nullable();
             $table->timestamps();
         });
     }
