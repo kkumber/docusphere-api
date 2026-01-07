@@ -8,6 +8,7 @@ use App\Helpers\ApiResponse;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentActionController;
 use App\Http\Controllers\DocumentAssignmentController;
+use App\Http\Controllers\DocumentTrackingController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\RecordsController;
 use App\Models\User;
@@ -50,6 +51,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::patch('review', [DocumentActionController::class, 'review']);
         Route::post('respond', [DocumentActionController::class, 'respond']);
     });
+
+    Route::get('/document/{document}/track', [DocumentTrackingController::class, 'index']);
 
 });
 
