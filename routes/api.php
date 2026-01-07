@@ -43,7 +43,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::prefix('document-actions/document/{document}')->group(function () {
         Route::get('details', [DocumentActionController::class, 'details']);
         Route::patch('acknowledge', [DocumentActionController::class, 'acknowledge']);
-        Route::patch('mark-as-done', [DocumentActionController::class, 'markAsDone']);
+        Route::patch('complete', [DocumentActionController::class, 'markAsDone']);
         Route::patch('approve', [DocumentActionController::class, 'approve']);
         Route::patch('sign', [DocumentActionController::class, 'sign']);
         Route::patch('review', [DocumentActionController::class, 'review']);

@@ -35,7 +35,7 @@ class DocumentActionService
                 ]);
             });
 
-            return ['success' => true, 'message' => 'Task' . strtolower($action) . ' successfully'];
+            return ['success' => true, 'message' => 'Task ' . strtolower($action) . ' successfully'];
         } catch (\Exception $e) {
             return ['success' => false, 'message' => 'Failed to perform action: ' . $e->getMessage()];
         }
