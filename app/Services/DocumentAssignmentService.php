@@ -31,6 +31,7 @@ class DocumentAssignmentService
             ];
         }
 
+        
         DB::transaction(function () use ($assignments, $request) {
 
             // check if document is already released or has an assignment

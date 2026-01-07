@@ -40,4 +40,9 @@ class DocumentAssignment extends Model
     {
         return $this->belongsTo(Status::class);
     }
+
+    public function actions()
+    {
+        return $this->hasMany(DocAssignmentAction::class);
+    }
 }
