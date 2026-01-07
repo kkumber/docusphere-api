@@ -41,6 +41,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('notifications', NotificationController::class)->only(['index', 'show']);
 
     Route::prefix('document-actions/document/{document}')->group(function () {
+        Route::get('actions', [DocumentActionController::class, 'index']);
         Route::get('details', [DocumentActionController::class, 'details']);
         Route::patch('acknowledge', [DocumentActionController::class, 'acknowledge']);
         Route::patch('complete', [DocumentActionController::class, 'markAsDone']);

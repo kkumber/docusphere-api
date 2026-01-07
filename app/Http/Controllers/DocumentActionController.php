@@ -25,6 +25,12 @@ class DocumentActionController extends Controller
     public function __construct(protected DocumentActionService $documentActionService) {}
 
 
+    public function index(Document $document)
+    {
+        $data = $document->documentAssignments()->with('actions')->get()->pluck('actions')->flatten();
+        return ApiResponse::success(data: $data);        
+    }
+
     public function details(Document $document)
     {
         $user = auth()->user();
