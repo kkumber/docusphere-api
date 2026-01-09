@@ -104,32 +104,14 @@ class DocumentActionController extends Controller
         return $this->isSuccessResponse($response);
     }
 
-    public function respond(Document $document, StoreAttachmentRequest $request, CloudinaryService $cloudinaryService) 
+    public function respond(Document $document, StoreAttachmentRequest $request) 
     {
         $user = auth()->user();
+        $validated = $request->validated();
+        // call service
+        $response = $this->documentActionService->performAction($document, $user, Status::DOC_ASSIGN_RESPONDED, 'Responded', $validated['file']);
 
-
-        // need to append file in the document file table then show all appending/response/supporting documents in the view alongside the current document. USE a service
-        // DB::transaction(function () use ($assignment, $user, $validatedFile, $document) {
-
-        //     $updated = $assignment->update([
-        //         'status_id' => Status::DOC_ASSIGN_RESPONDED,
-        //     ]);
-            
-        //     $attachment = DocumentFile::create([
-        //         'document_id' => $document->id,
-        //         'user_id' => $user->id,
-        //         'file_name' => $validatedFile['file']->getClientOriginalName(),
-        //     ]);
-
-        //     $docAssignmentAction = DocAssignmentAction::create([
-        //         'document_assignment_id' => $assignment->id,
-        //         'action' => 'responded',
-        //         'performed_by' => $user->id,
-        //     ]);
-        // });
-
-        return ApiResponse::success('Task responded');
+        return $this->isSuccessResponse($response);
     }
 
 

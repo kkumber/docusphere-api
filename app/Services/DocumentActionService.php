@@ -8,16 +8,31 @@ use App\Models\DocAssignmentAction;
 use App\Models\DocumentAssignment;
 use App\Models\User;
 use App\Models\Document;
+use App\Models\DocumentFile;
 use App\Models\Status;
 use DomainException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use RuntimeException;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class DocumentActionService
 {
-    public function performAction(Document $document, User $user, int $statusId, string $action)
+
+    public function __construct(protected CloudinaryService $cloudinaryService)
+    {
+        throw new \Exception('Cloudinary not implemented');
+    }
+
+
+    public function performAction(Document $document, User $user, int $statusId, string $action, $file = null)
     {
         // Check if user can perform actions
         $assignment = $this->canPerformAction($document, $user, $action);
+
+        if ($statusId === Status::DOC_ASSIGN_RESPONDED && $file) {
+            $this->saveDocumentResponse($file, $document, $user);
+        }
 
         // Transaction
         try {
@@ -86,6 +101,33 @@ class DocumentActionService
         }
 
         return $assignment;
+    }
+
+    private function saveDocumentResponse(UploadedFile $file, Document $document, User $user)
+    {
+        // Save document into document file table but call cloudinary service first all in db transaction
+        try {
+            DB::transaction(function () use ($file, $document, $user) {
+                $folder = 'documents/responses';
+                $uploadedFile = $this->cloudinaryService->uploadToCloudinary($file, $folder);
+
+                $originalName = $file->getClientOriginalName();
+                $mimeType = $file->getClientMimeType();
+                $size = $file->getSize();
+
+                DocumentFile::create([
+                    'document_id' => $document->id,
+                    'file_name' => Hash::make($originalName),
+                    'public_id' => $uploadedFile,
+                    'mime_type' => $mimeType,
+                    'file_size' => $size,
+                    'is_primary' => false,
+                    'uploaded_by' => $user->id,
+                ]);
+            });
+        } catch (\Exception $e) {
+            throw new RuntimeException('Failed to save document file: ', 0, $e);
+        }
     }
 
 
