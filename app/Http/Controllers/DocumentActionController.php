@@ -107,8 +107,9 @@ class DocumentActionController extends Controller
     public function respond(Document $document, StoreAttachmentRequest $request) 
     {
         $user = auth()->user();
+
         $validated = $request->validated();
-        // call service
+
         $response = $this->documentActionService->performAction($document, $user, Status::DOC_ASSIGN_RESPONDED, 'Responded', $validated['file']);
 
         return $this->isSuccessResponse($response);

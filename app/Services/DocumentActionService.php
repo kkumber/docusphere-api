@@ -20,9 +20,7 @@ class DocumentActionService
 {
 
     public function __construct(protected CloudinaryService $cloudinaryService)
-    {
-        throw new \Exception('Cloudinary not implemented');
-    }
+    {}
 
 
     public function performAction(Document $document, User $user, int $statusId, string $action, $file = null)
