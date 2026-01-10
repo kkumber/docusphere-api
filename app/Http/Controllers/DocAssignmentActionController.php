@@ -23,13 +23,14 @@ class DocAssignmentActionController extends Controller
 
             return [
                 'id' => $file->id,
-                'name' => $file->file_name,
                 'url' => $url,
+                'created_at' => $file->created_at,
                 'user' => [
                     'id' => $file->user->id,
                     'first_name' => $file->user->first_name,
                     'last_name' => $file->user->last_name,
                     'email' => $file->user->email,
+                    'role' => $file->user->roles->first()->name
                 ]
             ];
         });
@@ -39,7 +40,29 @@ class DocAssignmentActionController extends Controller
     public function getAllActions(Document $document)
     {
         // Get all actions
-        $documentAttachments = $document->documentAssignments()->with('actions')->get()->pluck('actions')->flatten();
-        return ApiResponse::success(data: $documentAttachments);
+        $documentActions = $document->documentAssignments()
+            ->with('actions.user.roles')
+            ->get()
+            ->pluck('actions')
+            ->flatten()
+            ->sortByDesc('created_at')
+            ->values() 
+            ->map(function ($action) {
+                return [
+                    'id' => $action->id,
+                    'action' => $action->action,
+                    'performed_by' => [
+                        'id' => $action->user->id,
+                        'first_name' => $action->user->first_name,
+                        'last_name' => $action->user->last_name,
+                        'email' => $action->user->email,
+                        'office' => $action->user->office,
+                        'role' => $action->user->roles->first()?->name,
+                    ],
+                    'created_at' => $action->created_at,
+                ];
+            });
+       
+        return ApiResponse::success(data: $documentActions);
     }
 }
