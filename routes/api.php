@@ -6,11 +6,13 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminUserController;
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DocAssignmentActionController;
 use App\Http\Controllers\DocumentActionController;
 use App\Http\Controllers\DocumentAssignmentController;
 use App\Http\Controllers\DocumentTrackingController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\RecordsController;
+use App\Models\DocAssignmentAction;
 use App\Models\User;
 
 Route::middleware(['auth:sanctum'])->group(function () {
@@ -53,9 +55,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 
     Route::get('/document/{document}/track', [DocumentTrackingController::class, 'index']);
+    Route::get('/document/{document}/attachments', [DocAssignmentActionController::class, 'getAllAttachments']);
+    Route::get('/document/{document}/actions', [DocAssignmentActionController::class, 'getAllActions']);
 
 });
-
 
 Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::apiResource('/users', AdminUserController::class);
