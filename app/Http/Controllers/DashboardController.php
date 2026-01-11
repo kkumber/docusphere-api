@@ -189,7 +189,7 @@ class DashboardController extends Controller
                         'value' => $assignmentStats[Status::DOC_ASSIGN_COMPLETED] ?? 0,
                     ],
                     [
-                        'title' => 'Documents for review',
+                        'title' => 'Pending Documents',
                         'value' => $assignmentStats[Status::DOC_ASSIGN_PENDING] ?? 0,
                     ],
                     [
