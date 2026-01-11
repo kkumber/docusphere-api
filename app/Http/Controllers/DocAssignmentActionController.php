@@ -14,7 +14,8 @@ class DocAssignmentActionController extends Controller
     {
         // Get all attachments on a document
         $documentAttachments = $document->documentFiles()->with(['user:id,first_name,last_name,email'])->where('is_primary', false)->get()->map(function ($file) use ($cloudinaryService) {
-            
+            $url = $cloudinaryService->generateSignedUrl($file->public_id);
+            return $url;
         });
         return ApiResponse::success(data: $documentAttachments);
     }
