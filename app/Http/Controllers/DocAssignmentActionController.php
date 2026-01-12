@@ -51,6 +51,7 @@ class DocAssignmentActionController extends Controller
                 return [
                     'id' => $action->id,
                     'action' => $action->action,
+                    'remarks' => $action->remarks,
                     'performed_by' => [
                         'id' => $action->user->id,
                         'first_name' => $action->user->first_name,

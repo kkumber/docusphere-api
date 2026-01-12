@@ -50,7 +50,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::patch('complete', [DocumentActionController::class, 'markAsDone']);
         Route::patch('approve', [DocumentActionController::class, 'approve']);
         Route::patch('sign', [DocumentActionController::class, 'sign']);
-        Route::patch('review', [DocumentActionController::class, 'review']);
+        Route::post('review', [DocumentActionController::class, 'review']);
         Route::post('respond', [DocumentActionController::class, 'respond']);
     });
 

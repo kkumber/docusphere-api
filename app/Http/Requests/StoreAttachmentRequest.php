@@ -23,6 +23,7 @@ class StoreAttachmentRequest extends FormRequest
     {
         return [
             'file' => ['required', 'file', 'mimes:pdf', 'max:10240'],
+            'remarks' => ['required', 'string'],
         ];
     }
 

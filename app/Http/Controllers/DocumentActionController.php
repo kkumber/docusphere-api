@@ -95,11 +95,16 @@ class DocumentActionController extends Controller
         return $this->isSuccessResponse($response);
     }
 
-    public function review(Document $document) 
+    public function review(Document $document, Request $request) 
     {
         $user = auth()->user();
 
-        $response = $this->documentActionService->performAction($document, $user, Status::DOC_ASSIGN_REVIEWED, 'Reviewed');
+        $validated = $request->validate([
+            'remarks' => ['required', 'string'],
+        ]);
+
+
+        $response = $this->documentActionService->performAction($document, $user, Status::DOC_ASSIGN_REVIEWED, 'Reviewed', remarks: $validated['remarks']);
 
         return $this->isSuccessResponse($response);
     }
@@ -110,7 +115,8 @@ class DocumentActionController extends Controller
 
         $validated = $request->validated();
 
-        $response = $this->documentActionService->performAction($document, $user, Status::DOC_ASSIGN_RESPONDED, 'Responded', $validated['file']);
+
+        $response = $this->documentActionService->performAction($document, $user, Status::DOC_ASSIGN_RESPONDED, 'Responded', file: $validated['file'], remarks: $validated['remarks']);
 
         return $this->isSuccessResponse($response);
     }

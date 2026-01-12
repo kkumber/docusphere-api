@@ -23,7 +23,7 @@ class DocumentActionService
     {}
 
 
-    public function performAction(Document $document, User $user, int $statusId, string $action, $file = null)
+    public function performAction(Document $document, User $user, int $statusId, string $action, $file = null, $remarks = null)
     {
         // Check if user can perform actions
         $assignment = $this->canPerformAction($document, $user, $action);
@@ -34,7 +34,7 @@ class DocumentActionService
 
         // Transaction
         try {
-            DB::transaction(function () use ($assignment, $user, $statusId, $action) {
+            DB::transaction(function () use ($assignment, $user, $statusId, $action, $remarks) {
                 // Update assignment
                 $assignment->update([
                     'status_id' => $statusId,
@@ -45,7 +45,9 @@ class DocumentActionService
                     'document_assignment_id' => $assignment->id,
                     'action' => $action,
                     'performed_by' => $user->id,
+                    'remarks' => $remarks ?? null
                 ]);
+                
             });
 
             return ['success' => true, 'message' => 'Task ' . strtolower($action) . ' successfully'];
@@ -56,50 +58,73 @@ class DocumentActionService
     }
     
 
+    private function canPerformAction(
+        Document $document,
+        User $user,
+        string $action
+    ): DocumentAssignment {
 
-    private function canPerformAction(Document $document, User $user, string $action): DocumentAssignment
-    {
-        // Validate action enum
-        if (Actions::tryFrom($action) === null) {
+        // 1. Validate action enum
+        if (!Actions::tryFrom($action)) {
             throw new DomainException('Invalid action');
         }
 
+        // 2. Get assignment
         $assignment = $this->getDocumentAssignment($document, $user);
+
+        // 3. Lazily create assignment ONLY if uploader and none exists
+        if (!$assignment && $document->uploaded_by === $user->id) {
+            $assignment = $this->createDocumentAssignment($user, $document);
+        }
 
         if (!$assignment) {
             throw new DomainException('No active assignment found');
         }
 
-        // Prevent action if assignment already completed
-        if ($assignment->status_id === Status::DOC_ASSIGN_COMPLETED) {
-            throw new DomainException('You can no longer perform this action on the document.');
+
+
+        // 4. Prevent duplicate action but only for those non uploader
+        if ($user->id !== $document->uploaded_by) {
+            $alreadyPerformed = $assignment->actions()
+                ->where('action', $action)
+                ->where('performed_by', $user->id)
+                ->exists();
+    
+            if ($alreadyPerformed) {
+                throw new DomainException("You have already {$action} this document.");
+            }
         }
 
-        // Prevent completing if still pending/delayed
+        // 5. Prevent action on completed assignment
+        if ($assignment->status_id === Status::DOC_ASSIGN_COMPLETED) {
+            throw new DomainException(
+                'You can no longer perform this action on the document.'
+            );
+        }
+
+        // 6. Prevent action on completed document
+        if ($document->status_id === Status::DOC_COMPLETED || $document->status_id === Status::DOC_ARCHIVED) {
+            throw new DomainException(
+                'You can no longer perform this action on the document.'
+            );
+        }
+
+        // 7. Prevent premature completion
         if (
-            $action === Actions::COMPLETED->value
-            && in_array($assignment->status_id, [
+            $action === Actions::COMPLETED->value &&
+            in_array($assignment->status_id, [
                 Status::DOC_ASSIGN_PENDING,
                 Status::DOC_ASSIGN_DELAYED,
             ])
         ) {
             throw new DomainException(
-                'You must acknowledge, approve, respond, review or sign the document before marking it as completed.'
+                'You must acknowledge, approve, respond, review, or sign the document before marking it as completed.'
             );
-        }
-
-        // Prevent duplicate action by same user
-        $alreadyPerformed = $assignment->actions()
-            ->where('action', $action)
-            ->where('performed_by', $user->id)
-            ->exists();
-
-        if ($alreadyPerformed) {
-            throw new DomainException("You have already {$action} this document.");
         }
 
         return $assignment;
     }
+
 
     private function saveDocumentResponse(UploadedFile $file, Document $document, User $user)
     {
@@ -135,6 +160,18 @@ class DocumentActionService
         ->where('assigned_to', $user->id)
         ->latest()
         ->first();
+    }
+
+    private function createDocumentAssignment(User $user, Document $document) {
+        return DocumentAssignment::create([
+            'document_id' => $document->id,
+            'request_type' => $document->request_type,
+            'assigned_to' => $user->id,
+            'assigned_by' => $document->uploaded_by,
+            'status_id' => Status::DOC_ASSIGN_PENDING,
+            'created_at'   => now(),
+            'updated_at'   => now(),
+        ]);
     }
 
 }
