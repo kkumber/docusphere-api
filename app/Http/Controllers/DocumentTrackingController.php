@@ -11,7 +11,7 @@ class DocumentTrackingController extends Controller
 {
     public function index(Document $document)
     {
-        $result = $document->documentTrackings()->with('user')->latest()->get();
+        $result = $document->documentTrackings()->with('sender', 'receiver')->latest()->get();
         return ApiResponse::success(data: $result);
     }
 }
