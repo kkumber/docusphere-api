@@ -16,6 +16,7 @@ return new class extends Migration
         $table->foreignId('document_assignment_id')->constrained()->cascadeOnDelete();
         $table->string('action', 50); // acknowledged, approved, signed, completed, returned, etc.
         $table->foreignId('performed_by')->constrained('users')->cascadeOnDelete();
+        $table->text('remarks')->nullable()->default(null);
         $table->timestamps();
         });
     }

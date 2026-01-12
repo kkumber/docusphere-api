@@ -10,7 +10,8 @@ class DocAssignmentAction extends Model
     protected $fillable = [
         'document_assignment_id',
         'action',
-        'performed_by'
+        'performed_by',
+        'remarks',
     ];
 
 
