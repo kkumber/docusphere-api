@@ -136,6 +136,8 @@ class DashboardController extends Controller
             ->orderBy('date')
             ->get();
 
+        $assignmentMadeByUser = DocumentAssignment::where('assigned_by', $user->id)->count();
+
         /**
          * =========================
          * SDS DASHBOARD
@@ -146,22 +148,20 @@ class DashboardController extends Controller
             $sdsData = [
                 'cards' => [
                     [
-                        'title' => 'Total routings',
+                        'title' => 'Routed Document',
+                        'value' => $assignmentMadeByUser ?? 0,
+                    ],
+                    [
+                        'title' => 'Completed Tasks',
                         'value' => $assignmentStats[Status::DOC_ASSIGN_COMPLETED] ?? 0,
                     ],
                     [
-                        'title' => 'Total completed tasks',
-                        'value' => $assignmentStats[Status::DOC_ASSIGN_COMPLETED] ?? 0,
-                    ],
-                    [
-                        'title' => 'Total delayed tasks',
+                        'title' => 'Delayed Tasks',
                         'value' => $assignmentStats[Status::DOC_ASSIGN_DELAYED] ?? 0,
                     ],
                     [
-                        'title' => 'Returned to Records',
-                        'value' => DocumentTracking::where('to_user', $user->id)
-                            ->where('status_id', Status::DOC_TRACK_COMPLETED)
-                            ->count(),
+                        'title' => 'Pending Tasks',
+                        'value' => $assignmentStats[Status::DOC_ASSIGN_PENDING] ?? 0,
                     ],
                 ],
                 'area_chart' => [
@@ -185,7 +185,7 @@ class DashboardController extends Controller
             $chiefData = [
                 'cards' => [
                     [
-                        'title' => 'Total tasks done',
+                        'title' => 'Completed Tasks',
                         'value' => $assignmentStats[Status::DOC_ASSIGN_COMPLETED] ?? 0,
                     ],
                     [
@@ -193,8 +193,8 @@ class DashboardController extends Controller
                         'value' => $assignmentStats[Status::DOC_ASSIGN_PENDING] ?? 0,
                     ],
                     [
-                        'title' => 'Documents routed',
-                        'value' => DocumentTracking::where('from_user', $user->id)->count(),
+                        'title' => 'Routed Documents',
+                        'value' => $assignmentMadeByUser ?? 0,
                     ],
                     [
                         'title' => 'Delayed documents',
