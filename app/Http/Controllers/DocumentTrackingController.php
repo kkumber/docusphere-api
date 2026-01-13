@@ -19,7 +19,6 @@ class DocumentTrackingController extends Controller
             return [
                 'id' => $tracking->id,
                 'status_id' => $tracking->status_id,
-                'remarks' => $tracking->remarks,
                 'created_at' => $tracking->created_at,
 
                 'from' => [
