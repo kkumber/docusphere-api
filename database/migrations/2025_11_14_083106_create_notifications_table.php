@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('document_id')->constrained()->cascadeOnDelete();
         
             $table->string('subject');
-            $table->json('data');      // snapshot of assignment context
+            $table->json('data')->nullable();      // snapshot of assignment context
         
             $table->boolean('is_read')->default(false);
             $table->timestamps();

@@ -28,13 +28,16 @@ class DocumentActionService
         // Check if user can perform actions
         $assignment = $this->canPerformAction($document, $user, $action);
 
+        // Save document response file
         if ($statusId === Status::DOC_ASSIGN_RESPONDED && $file) {
             $this->saveDocumentResponse($file, $document, $user);
         }
 
+
         // Transaction
         try {
-            DB::transaction(function () use ($assignment, $user, $statusId, $action, $remarks) {
+            DB::transaction(function () use ($document, $assignment, $user, $statusId, $action, $remarks) {
+
                 // Update assignment
                 $assignment->update([
                     'status_id' => $statusId,
@@ -47,6 +50,17 @@ class DocumentActionService
                     'performed_by' => $user->id,
                     'remarks' => $remarks ?? null
                 ]);
+
+                
+                // Check if user is sds
+                $isSds = $user->getRoleAttribute() === 'sds';
+
+                // if sds we create a new notification of completed document to send to all records and then we update doc status to completed
+                if ($isSds) {
+                    $document->update([
+                        'status_id' => Status::DOC_COMPLETED
+                    ]);
+                }
                 
             });
 
