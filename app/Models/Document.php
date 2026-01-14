@@ -24,12 +24,17 @@ class Document extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'uploaded_by');
     }
 
     public function documentFiles()
     {
         return $this->hasMany(DocumentFile::class);
+    }
+
+    public function documentAssignments()
+    {
+        return $this->hasMany(DocumentAssignment::class);
     }
 
     public function DocResponseFiles() 

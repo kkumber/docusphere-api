@@ -21,7 +21,11 @@ class DocumentPolicy
      */
     public function view(User $user, Document $document): bool
     {
-        return $document->assigned_to == $user->id;
+        if ($user->hasRole('admin') || $user->hasRole('records')) {
+            return true;
+        }
+
+        return $document->documentAssignments()->where('assigned_to', $user->id)->exists();
     }
 
     /**
@@ -37,7 +41,7 @@ class DocumentPolicy
      */
     public function update(User $user, Document $document): bool
     {
-        return false;
+        return $user->hasAnyRole(['admin', 'records', 'sds']);
     }
 
     /**
@@ -45,7 +49,7 @@ class DocumentPolicy
      */
     public function delete(User $user, Document $document): bool
     {
-        return $user->hasRole('records');
+        return $user->hasRole('records') || $user->hasRole('admin');
     }
 
     /**

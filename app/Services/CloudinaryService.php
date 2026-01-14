@@ -32,7 +32,9 @@ class CloudinaryService
                 throw new \RuntimeException('Invalid file upload');
             }
 
-            $publicId = (string) Str::uuid();
+            $uuid = (string) Str::uuid();
+            $extension = $file->getClientOriginalExtension();
+            $publicId = $folder . '/' . $uuid . '.' . $extension;
             $filePath = $file->getRealPath();
 
             Log::info('Attempting Cloudinary upload', [
@@ -43,10 +45,11 @@ class CloudinaryService
 
             // Upload using the SDK's uploadApi
             $result = $this->cloudinary->uploadApi()->upload($filePath, [
-                'public_id' => $folder . '/' . $publicId,
+                'public_id' => $publicId,
                 'resource_type' => 'raw',
                 'type' => 'private',
                 'overwrite' => false,
+                'format' => 'pdf'
             ]);
 
             // DELETE THIS ON PROD
@@ -74,45 +77,56 @@ class CloudinaryService
         }
     }
 
-    public function generateSignedUrl(string $publicId, int $expiresInSeconds = 3600): string
+   public function generateSignedUrl(string $publicId, int $expiresInSeconds = 3600): string
     {
         try {
-            // Generate a private download URL
-            $options = [
-                'resource_type' => 'raw',
-                'type' => 'private',
-                'sign_url' => true,
-                'secure' => true,
-                'attachment' => true,
-                'expires_at' => time() + $expiresInSeconds,
-            ];
-
-            // Build the URL using Cloudinary's URL builder
-            $url = $this->cloudinary->image($publicId)
-                ->toUrl();
-
-            // For raw files, we need to manually construct the URL
             $cloudName = config('cloudinary.cloud_name');
-            $signature = $this->generateSignature($publicId, $expiresInSeconds);
+            $apiKey = config('cloudinary.api_key');
+            $apiSecret = config('cloudinary.api_secret');
             
+            $timestamp = time() + $expiresInSeconds;
+            
+            // Sign for the API endpoint
+            $toSign = "public_id={$publicId}&timestamp={$timestamp}{$apiSecret}";
+            $signature = sha1($toSign);
+            
+            // Use Cloudinary's download API
             $url = sprintf(
-                'https://res.cloudinary.com/%s/raw/private/s--%s--/%s',
+                'https://api.cloudinary.com/v1_1/%s/raw/download?public_id=%s&timestamp=%s&signature=%s&api_key=%s',
                 $cloudName,
+                urlencode($publicId),
+                $timestamp,
                 $signature,
-                $publicId
+                $apiKey
             );
+
+            Log::info('Generated download URL', [
+                'public_id' => $publicId,
+                'url' => $url
+            ]);
 
             return $url;
 
         } catch (\Throwable $e) {
             Log::error('Cloudinary URL generation failed', [
                 'public_id' => $publicId,
-                'message'   => $e->getMessage()
+                'message'   => $e->getMessage(),
             ]);
 
             throw new \RuntimeException('Failed to generate secure access link.');
         }
     }
+
+
+    //         ✅ Download version (forces browser download)
+// return $this->cloudinary
+//     ->raw($publicId)
+//     ->download([
+//         'type'          => 'private',
+//         'sign_url'      => true,
+//         'secure'        => true,
+//         'expires_at'    => time() + $expiresInSeconds,
+//     ]);
 
     private function generateSignature(string $publicId, int $expiresAt): string
     {

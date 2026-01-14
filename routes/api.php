@@ -6,7 +6,14 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminUserController;
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DocAssignmentActionController;
+use App\Http\Controllers\DocumentActionController;
+use App\Http\Controllers\DocumentAssignmentController;
+use App\Http\Controllers\DocumentTrackingController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\RecordsController;
+use App\Models\DocAssignmentAction;
+use App\Models\User;
 
 Route::middleware(['auth:sanctum'])->group(function () {
     // Get user info
@@ -17,12 +24,44 @@ Route::middleware(['auth:sanctum'])->group(function () {
         return ApiResponse::success(data: $userWithRole);
     });
 
+    // Get All Users by Role
+    Route::get('/users/roles', function () {
+        $usersByRole = [
+            'admin' => User::role('admin')->get(['id', 'first_name', 'last_name', 'office']),
+            'records' => User::role('records')->get(['id', 'first_name', 'last_name', 'office']),
+            'sds' => User::role('sds')->get(['id', 'first_name', 'last_name', 'office']),
+            'chief' => User::role('chief')->get(['id', 'first_name', 'last_name', 'office']),
+            'staff' => User::role('staff')->get(['id', 'first_name', 'last_name', 'office']),
+        ];
+        
+        return ApiResponse::success(data: $usersByRole);
+    });
 
-    Route::apiResource('documents', DocumentController::class);
+
+    Route::apiResource('documents', DocumentController::class)->only(['show']);
     Route::apiResource('dashboard', DashboardController::class);
+    Route::apiResource('document/assignments', DocumentAssignmentController::class)->only(['index', 'store']);
+    Route::apiResource('notifications', NotificationController::class)->only(['index', 'show']);
+
+    Route::prefix('document-actions/document/{document}')->group(function () {
+        Route::get('actions', [DocumentActionController::class, 'index']);
+        Route::get('details', [DocumentActionController::class, 'details']);
+        Route::patch('acknowledge', [DocumentActionController::class, 'acknowledge']);
+        Route::patch('complete', [DocumentActionController::class, 'markAsDone']);
+        Route::patch('approve', [DocumentActionController::class, 'approve']);
+        Route::patch('sign', [DocumentActionController::class, 'sign']);
+        Route::post('review', [DocumentActionController::class, 'review']);
+        Route::post('respond', [DocumentActionController::class, 'respond']);
+    });
+
+    Route::prefix('/document/{document}')->group(function () {
+        Route::get('/track', [DocumentTrackingController::class, 'index']);
+        Route::get('/attachments', [DocAssignmentActionController::class, 'getAllAttachments']);
+        Route::get('/actions', [DocAssignmentActionController::class, 'getAllActions']);
+        Route::get('/assignment-status', [DocumentController::class, 'getAllAssignmentStatus']); 
+    });
 
 });
-
 
 Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::apiResource('/users', AdminUserController::class);

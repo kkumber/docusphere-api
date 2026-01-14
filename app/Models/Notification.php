@@ -9,4 +9,17 @@ class Notification extends Model
 {
     /** @use HasFactory<\Database\Factories\NotificationFactory> */
     use HasFactory;
+
+    protected $fillable = [
+        'user_id',
+        'document_id',
+        'subject',
+        'data',
+        'is_read',
+    ];
+
+    protected $casts = [
+        'data' => 'array', 
+        'is_read' => 'boolean',
+    ];
 }

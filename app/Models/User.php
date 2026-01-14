@@ -62,6 +62,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->roles->pluck('name')->first();
     }
 
+    public function actions()
+    {
+        return $this->hasMany(DocAssignmentAction::class, 'performed_by');
+    }
+
     public function documents()
     {
         return $this->hasMany(Document::class, 'uploaded_by');

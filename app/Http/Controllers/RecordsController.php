@@ -31,20 +31,28 @@ class RecordsController extends Controller
         $documentDetails = [
             'tracking_no' => $validated['tracking_no'],
             'title' => $validated['title'],
-            'instructions' => $validated['instructions'],
+            'instructions' => $validated['instructions'] ?? null,
             'category' => $validated['category'],
             'originating_office' => $validated['originating_office'],
             'request_type' => $validated['request_type'],
             'uploaded_by' => $user->id,
             'status_id' => Status::DOC_PENDING,
-            'due_date' => $validated['due_date'],
+            'due_date' => $validated['due_date'] ?? null,
         ];
 
         $file = $validated['file'];
+        $folder = 'documents' . '/' . $validated['category'];
 
         // use document service here to call save db in transaction
-        $result = $documentService->saveDocumentWithFileUpload($documentDetails, $user->id, 'documents', $file);
+        $result = $documentService->saveDocumentWithFileUpload($documentDetails, $user->id, $folder, $file);
 
         return $apiResponse->success(data: $result);
+    }
+
+    public function delete(Document $document)
+    {
+        $this->authorize('delete', $document);
+        $document->delete();
+        return ApiResponse::success('Document deleted');
     }
 }

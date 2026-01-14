@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\RequestType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Models\User;
 use App\Models\Document;
@@ -21,8 +22,12 @@ class NotificationFactory extends Factory
         return [
             'user_id' => User::inRandomOrder()->value('id'),
             'document_id' => Document::inRandomOrder()->value('id'),
-            'message' => fake()->sentence(),
-            'type' => fake()->randomElement(['info', 'reminder', 'delay', 'escalation']),
+            'subject' => fake()->title(),
+            'data' => [
+                'request_type' => fake()->randomElement(array_column(RequestType::cases(), 'value')),
+                'assigned_by' => User::inRandomOrder()->value('id'),
+                'instructions' => fake()->sentence(),
+            ],
             'is_read' => fake()->boolean(),
         ];
     }
