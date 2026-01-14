@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Actions;
 use App\Models\Document;
 use Illuminate\Http\Request;
 use App\Helpers\ApiResponse;
@@ -63,7 +64,7 @@ class DocumentActionController extends Controller
     {
         $user = auth()->user();
 
-        $response = $this->documentActionService->performAction($document, $user, Status::DOC_ASSIGN_ACKNOWLEDGED, 'Acknowledged');
+        $response = $this->documentActionService->performAction($document, $user, Status::DOC_ASSIGN_ACKNOWLEDGED, Actions::ACKNOWLEDGED->value);
 
         return $this->isSuccessResponse($response);
     }
@@ -72,7 +73,7 @@ class DocumentActionController extends Controller
     {
         $user = auth()->user();
 
-        $response = $this->documentActionService->performAction($document, $user, Status::DOC_ASSIGN_COMPLETED, 'Completed');
+        $response = $this->documentActionService->performAction($document, $user, Status::DOC_ASSIGN_COMPLETED, Actions::COMPLETED->value);
 
         return $this->isSuccessResponse($response);
     }
@@ -81,7 +82,7 @@ class DocumentActionController extends Controller
     {
         $user = auth()->user();
 
-        $response = $this->documentActionService->performAction($document, $user, Status::DOC_ASSIGN_APPROVED, 'Approved');
+        $response = $this->documentActionService->performAction($document, $user, Status::DOC_ASSIGN_APPROVED, Actions::APPROVED->value);
 
         return $this->isSuccessResponse($response);
     }
@@ -90,7 +91,7 @@ class DocumentActionController extends Controller
     {
         $user = auth()->user();
 
-        $response = $this->documentActionService->performAction($document, $user, Status::DOC_ASSIGN_SIGNED, 'Signed');
+        $response = $this->documentActionService->performAction($document, $user, Status::DOC_ASSIGN_SIGNED, Actions::SIGNED->value);
 
         return $this->isSuccessResponse($response);
     }
@@ -104,7 +105,7 @@ class DocumentActionController extends Controller
         ]);
 
 
-        $response = $this->documentActionService->performAction($document, $user, Status::DOC_ASSIGN_REVIEWED, 'Reviewed', remarks: $validated['remarks']);
+        $response = $this->documentActionService->performAction($document, $user, Status::DOC_ASSIGN_REVIEWED, Actions::REVIEWED->value, remarks: $validated['remarks']);
 
         return $this->isSuccessResponse($response);
     }
@@ -116,7 +117,7 @@ class DocumentActionController extends Controller
         $validated = $request->validated();
 
 
-        $response = $this->documentActionService->performAction($document, $user, Status::DOC_ASSIGN_RESPONDED, 'Responded', file: $validated['file'], remarks: $validated['remarks']);
+        $response = $this->documentActionService->performAction($document, $user, Status::DOC_ASSIGN_RESPONDED, Actions::RESPONDED->value, file: $validated['file'], remarks: $validated['remarks']);
 
         return $this->isSuccessResponse($response);
     }

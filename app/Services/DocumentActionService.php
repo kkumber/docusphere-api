@@ -99,18 +99,29 @@ class DocumentActionService
         }
 
 
+        $alreadyPerformed = $assignment->actions()
+            ->where('action', $action)
+            ->where('performed_by', $user->id)
+            ->exists();
 
         // 4. Prevent duplicate action but only for those non uploader
-        if ($user->id !== $document->uploaded_by) {
-            $alreadyPerformed = $assignment->actions()
-                ->where('action', $action)
-                ->where('performed_by', $user->id)
-                ->exists();
-    
-            if ($alreadyPerformed) {
+        $repeatableActionsForUploader = [
+            Actions::RESPONDED->value,
+            Actions::REVIEWED->value,
+        ];
+
+        if ($alreadyPerformed) {
+            // Non-uploader: never allowed to repeat
+            if ($user->id !== $document->uploaded_by) {
+                throw new DomainException("You have already {$action} this document.");
+            }
+
+            // Uploader: only allowed to repeat specific actions
+            if (! in_array($action, $repeatableActionsForUploader, true)) {
                 throw new DomainException("You have already {$action} this document.");
             }
         }
+
 
         // 5. Prevent action on completed assignment
         if ($assignment->status_id === Status::DOC_ASSIGN_COMPLETED) {
