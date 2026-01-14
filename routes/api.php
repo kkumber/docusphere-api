@@ -54,9 +54,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('respond', [DocumentActionController::class, 'respond']);
     });
 
-    Route::get('/document/{document}/track', [DocumentTrackingController::class, 'index']);
-    Route::get('/document/{document}/attachments', [DocAssignmentActionController::class, 'getAllAttachments']);
-    Route::get('/document/{document}/actions', [DocAssignmentActionController::class, 'getAllActions']);
+    Route::prefix('/document/{document}')->group(function () {
+        Route::get('/track', [DocumentTrackingController::class, 'index']);
+        Route::get('/attachments', [DocAssignmentActionController::class, 'getAllAttachments']);
+        Route::get('/actions', [DocAssignmentActionController::class, 'getAllActions']);
+        Route::get('/assignment-status', [DocumentController::class, 'getAllAssignmentStatus']); 
+    });
 
 });
 

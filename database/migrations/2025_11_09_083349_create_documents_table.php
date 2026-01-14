@@ -15,13 +15,13 @@ return new class extends Migration
             $table->id();
             $table->string('tracking_no')->unique();
             $table->string('title');
-            $table->text('instructions');
+            $table->text('instructions')->nullable()->default(null);
             $table->string('category', 50); // Must be checked in request for validation
             $table->string('originating_office', 50);
             $table->string('request_type', 50); // Must be checked in request for validation
             $table->foreignId('uploaded_by')->constrained('users')->onDelete('cascade');
             $table->foreignId('status_id')->constrained('statuses'); // Create a lookup table
-            $table->date('due_date')->nullable();
+            $table->date('due_date')->nullable()->default(null);
             $table->timestamps();
         });
     }

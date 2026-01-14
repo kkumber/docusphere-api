@@ -28,11 +28,11 @@ class StoreDocumentRequest extends FormRequest
         return [
             'tracking_no' => ['required', 'string', 'unique:documents'],
             'title' => ['required', 'string'],
-            'instructions' => ['required', 'string'],
+            'instructions' => ['string'],
             'category' => ['required', 'string', Rule::in(['advisory', 'endorsement', 'memorandum', 'unnumbered_memorandum'])],
             'originating_office' => ['required', 'string'],
             'request_type' => ['required', new Enum(RequestType::class)],
-            'due_date' => ['required', 'date'],
+            'due_date' => ['date'],
             'file' => ['required', 'file', 'mimes:pdf', 'max:10240'],
         ];
     }

@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use App\Models\Document;
 use App\Models\DocumentAssignment;
 use App\Models\DocumentFile;
+use App\Models\Status;
 use App\Services\CloudinaryService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Spatie\Permission\Exceptions\UnauthorizedException;
@@ -38,12 +39,34 @@ class DocumentController extends Controller
         return ApiResponse::success(data: $response);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    
+    public function getAllAssignmentStatus(Document $document)
     {
-        //
+        $this->authorize('update', $document);
+
+        $notCompletedAssignments = $document->documentAssignments()
+            ->with('assignee')
+            ->where('status_id', '!=', Status::DOC_ASSIGN_COMPLETED)
+            ->get()
+            ->map(function ($assignment) {
+                return [
+                    'id' => $assignment->id,
+                    'request_type' => $assignment->request_type,
+                    'status' => Status::label($assignment->status_id),
+                    'assignee' => [
+                        'id' => $assignment->assignee->id,
+                        'name' => trim(
+                            $assignment->assignee->first_name . ' ' . $assignment->assignee->last_name
+                        ),
+                        'role' => $assignment->assignee->role,
+                        'office' => $assignment->assignee->office,
+                    ],
+                ];
+            });
+
+        return ApiResponse::success(data: $notCompletedAssignments);
+
+
     }
 
 

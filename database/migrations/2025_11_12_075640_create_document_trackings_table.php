@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('from_user')->constrained('users');
             $table->foreignId('to_user')->constrained('users');
             $table->foreignId('status_id')->constrained();
-            $table->text('remarks')->nullable();
+            $table->text('remarks')->nullable()->default(null);
             $table->timestamps();
         });
     }

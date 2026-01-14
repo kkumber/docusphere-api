@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\Actions;
+use App\Events\DocumentCompleted;
 use App\Helpers\ApiResponse;
 use App\Models\DocAssignmentAction;
 use App\Models\DocumentAssignment;
@@ -60,6 +61,8 @@ class DocumentActionService
                     $document->update([
                         'status_id' => Status::DOC_COMPLETED
                     ]);
+
+                    event(new DocumentCompleted($document));
                 }
                 
             });

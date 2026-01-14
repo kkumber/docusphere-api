@@ -19,15 +19,15 @@ class DatabaseSeeder extends Seeder
             StatusSeeder::class,
         ]);
 
-        $roles = Role::all();
+        // $roles = Role::all();
 
-        User::factory()
-            ->count(10)
-            ->has(Document::factory()->count(5))
-            ->create()
-            ->each(function (User $user) use($roles) {
-                $user->assignRole($roles->random());
-            });
+        // User::factory()
+        //     ->count(10)
+        //     ->has(Document::factory()->count(5))
+        //     ->create()
+        //     ->each(function (User $user) use($roles) {
+        //         $user->assignRole($roles->random());
+        //     });
 
         //create a admin user
         $admin = User::create([
@@ -42,15 +42,15 @@ class DatabaseSeeder extends Seeder
         $admin->assignRole('admin');
 
 
-        $this->call([
-            DocumentFileSeeder::class,
-            DocResponseFileSeeder::class,
-            DocumentAssignmentSeeder::class,
-            DocumentTrackingSeeder::class,
-            DocumentVersionSeeder::class,
-            DocumentCommentSeeder::class,
-            AuditLogSeeder::class,
-            NotificationSeeder::class,
-        ]);
+        // $this->call([
+        //     DocumentFileSeeder::class,
+        //     DocResponseFileSeeder::class,
+        //     DocumentAssignmentSeeder::class,
+        //     DocumentTrackingSeeder::class,
+        //     DocumentVersionSeeder::class,
+        //     DocumentCommentSeeder::class,
+        //     AuditLogSeeder::class,
+        //     NotificationSeeder::class,
+        // ]);
     }
 }

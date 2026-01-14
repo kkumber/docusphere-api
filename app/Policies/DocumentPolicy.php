@@ -41,7 +41,7 @@ class DocumentPolicy
      */
     public function update(User $user, Document $document): bool
     {
-        return false;
+        return $user->hasAnyRole(['admin', 'records', 'sds']);
     }
 
     /**

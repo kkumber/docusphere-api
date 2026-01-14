@@ -42,4 +42,34 @@ class Status extends Model
         'code',
         'label',
     ];
+
+    protected static array $labels = [
+        // document
+        self::DOC_PENDING   => 'Pending',
+        self::DOC_ARCHIVED  => 'Archived',
+        self::DOC_COMPLETED => 'Completed',
+        self::DOC_DELAYED   => 'Delayed',
+        self::DOC_RELEASED  => 'Released',
+
+        // assignment
+        self::DOC_ASSIGN_PENDING      => 'Pending',
+        self::DOC_ASSIGN_ACKNOWLEDGED => 'Acknowledged',
+        self::DOC_ASSIGN_APPROVED     => 'Approved',
+        self::DOC_ASSIGN_SIGNED       => 'Signed',
+        self::DOC_ASSIGN_REVIEWED     => 'Reviewed',
+        self::DOC_ASSIGN_RESPONDED    => 'Responded',
+        self::DOC_ASSIGN_COMPLETED    => 'Completed',
+        self::DOC_ASSIGN_DELAYED      => 'Delayed',
+
+        // tracking
+        self::DOC_TRACK_ROUTED    => 'Routed',
+        self::DOC_TRACK_COMPLETED => 'Completed',
+        self::DOC_TRACK_RETURNED  => 'Returned',
+        self::DOC_TRACK_APPROVED  => 'Approved',
+    ];
+
+    public static function label(int $statusId): string
+    {
+        return self::$labels[$statusId] ?? 'Unknown';
+    }
 }
