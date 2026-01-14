@@ -31,13 +31,13 @@ class RecordsController extends Controller
         $documentDetails = [
             'tracking_no' => $validated['tracking_no'],
             'title' => $validated['title'],
-            'instructions' => $validated['instructions'],
+            'instructions' => $validated['instructions'] ?? null,
             'category' => $validated['category'],
             'originating_office' => $validated['originating_office'],
             'request_type' => $validated['request_type'],
             'uploaded_by' => $user->id,
             'status_id' => Status::DOC_PENDING,
-            'due_date' => $validated['due_date'],
+            'due_date' => $validated['due_date'] ?? null,
         ];
 
         $file = $validated['file'];

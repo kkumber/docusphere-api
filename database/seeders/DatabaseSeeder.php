@@ -41,6 +41,18 @@ class DatabaseSeeder extends Seeder
         $admin->save();
         $admin->assignRole('admin');
 
+        // create a records system user
+        $records = User::create([
+            'first_name' => 'Records',
+            'last_name' => 'Office',
+            'email' => 'docusphere@records.com',
+            'password' => bcrypt('password'),
+            'office' => 'Records Office',
+        ]);
+        $records->email_verified_at = now();
+        $records->save();
+        $records->assignRole('records');
+
 
         // $this->call([
         //     DocumentFileSeeder::class,
