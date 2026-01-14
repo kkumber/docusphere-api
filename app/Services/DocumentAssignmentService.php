@@ -40,8 +40,9 @@ class DocumentAssignmentService
             // update document status to released
             if (!$docHasAssignment) {
                 $document = Document::findOrFail($request['document_id']);
-                $document->status_id = Status::DOC_RELEASED;
-                $document->save();
+                $document->update([
+                    'status_id' => Status::DOC_RELEASED,
+                ]);
             }
 
             DocumentAssignment::insert($assignments);
