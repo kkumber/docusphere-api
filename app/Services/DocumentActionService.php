@@ -136,8 +136,8 @@ class DocumentActionService
             );
         }
 
-        // 6. Prevent action on completed document
-        if ($document->status_id === Status::DOC_COMPLETED || $document->status_id === Status::DOC_ARCHIVED) {
+        // 6. Prevent action on completed document and a completed draft
+        if ($document->status_id === Status::DOC_COMPLETED || $document->status_id === Status::DOC_ARCHIVED || $document->status_id === Status::DOC_DRAFT_APPROVED) {
             throw new DomainException(
                 'You can no longer perform this action on the document.'
             );

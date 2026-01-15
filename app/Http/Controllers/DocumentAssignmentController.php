@@ -56,10 +56,10 @@ class DocumentAssignmentController extends Controller
             ->map(fn($d) => [
                 'id' => $d->id,
                 'doc_assignment_id' => null,
-                'instructions' => null,
+                'instructions' => $d->instructions,
                 'status_id' => $d->status->id ?? null,
-                'request_type' => null,
-                'due_date' => null,
+                'request_type' => $d->request_type,
+                'due_date' => $d->due_date,
                 'tracking_no' => $d->tracking_no,
                 'title' => $d->title,
                 'category' => $d->category,
