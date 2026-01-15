@@ -26,6 +26,7 @@ class StoreDocumentAssignmentRequest extends FormRequest
         return [
             'document_id' => ['required', 'exists:documents,id'],
             'request_type' => ['required', 'string', Rule::in(array_column(RequestType::cases(), 'value'))],
+            'instructions' => ['nullable', 'string'],
             'assigned_to' => ['required', 'array', 'min:1'],
             'assigned_to.*' => ['integer', 'exists:users,id'],
             'assigned_to' => ['required', 'exists:users,id'],
