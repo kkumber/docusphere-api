@@ -71,4 +71,5 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
 
 Route::middleware(['auth:sanctum', 'role:admin|records'])->group(function () {
     Route::apiResource('/record/documents', RecordsController::class);
+    Route::patch('/record/documents/{document}/archive', [RecordsController::class, 'archive']);
 });

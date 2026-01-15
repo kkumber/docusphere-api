@@ -98,7 +98,6 @@ class DocumentController extends Controller
 
         return ApiResponse::success(data: $notCompletedAssignments);
 
-
     }
 
 
