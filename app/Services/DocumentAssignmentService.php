@@ -34,15 +34,22 @@ class DocumentAssignmentService
         
         DB::transaction(function () use ($assignments, $request) {
 
+            $document = Document::lockForUpdate()->findOrFail($request['document_id']);
+
             // check if document is already released or has an assignment
-            $docHasAssignment = DocumentAssignment::where('document_id', $request['document_id'])->lockForUpdate()->exists();
+            $docHasAssignment = DocumentAssignment::where('document_id', $document->id)->exists();
 
             // update document status to released
             if (!$docHasAssignment) {
-                $document = Document::findOrFail($request['document_id']);
-                $document->update([
-                    'status_id' => Status::DOC_RELEASED,
-                ]);
+                if ($document->status_id === Status::DOC_DRAFT_PENDING) {
+                    $document->update([
+                        'status_id' => Status::DOC_DRAFT_IN_REVIEW,
+                    ]);
+                } else {
+                    $document->update([
+                        'status_id' => Status::DOC_RELEASED,
+                    ]);
+                }
             }
 
             DocumentAssignment::insert($assignments);

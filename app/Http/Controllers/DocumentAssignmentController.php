@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Helpers\ApiResponse;
 use App\Http\Requests\StoreDocumentAssignmentRequest;
+use App\Models\Document;
 use App\Models\DocumentAssignment;
 use App\Models\Status;
 use App\Models\User;
@@ -26,7 +27,7 @@ class DocumentAssignmentController extends Controller
     public function index()
     {
         $userId = auth()->id();
-        $documents = DocumentAssignment::with('document', 'status')
+        $assignments = DocumentAssignment::with('document', 'status')
             ->where('assigned_to', $userId)
             ->orderBy('created_at', 'desc')
             ->get()
@@ -47,6 +48,29 @@ class DocumentAssignmentController extends Controller
                 ];
             });
 
+        $drafts = Document::with('status', 'user')
+            ->where('uploaded_by', $userId)
+            ->whereIn('status_id', [Status::DOC_DRAFT_PENDING, Status::DOC_DRAFT_IN_REVIEW, Status::DOC_DRAFT_APPROVED])
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(fn($d) => [
+                'id' => $d->id,
+                'doc_assignment_id' => null,
+                'instructions' => null,
+                'status_id' => $d->status->id ?? null,
+                'request_type' => null,
+                'due_date' => null,
+                'tracking_no' => $d->tracking_no,
+                'title' => $d->title,
+                'category' => $d->category,
+                'originating_office' => $d->originating_office,
+            ]);
+
+        $documents = $assignments->concat($drafts)
+            ->unique('id')
+            ->values();
+
+
         return ApiResponse::success(data: $documents);
     }
 
@@ -57,6 +81,7 @@ class DocumentAssignmentController extends Controller
     {
         $user = auth()->user();
         $validated = $request->validated();
+        
         // we are expecting an array of user ids
         $targetUsers = User::findOrFail($validated['assigned_to']);
         $documentAssignments = DocumentAssignment::with('document', 'assignee', 'status')->get();

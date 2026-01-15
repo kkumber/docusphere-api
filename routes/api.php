@@ -28,7 +28,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/users/roles', function () {
         $usersByRole = [
             'admin' => User::role('admin')->orderBy('first_name')->get(['id', 'first_name', 'last_name', 'office']),
-            'records' => User::role('records')->orderBy('first_name')->get(['id', 'first_name', 'last_name', 'office']),
+            'records' => User::role('records')->where('email', 'docusphere@records.com')->get(['id', 'first_name', 'last_name', 'office']),
             'sds' => User::role('sds')->orderBy('first_name')->get(['id', 'first_name', 'last_name', 'office']),
             'chief' => User::role('chief')->orderBy('first_name')->get(['id', 'first_name', 'last_name', 'office']),
             'staff' => User::role('staff')->orderBy('first_name')->get(['id', 'first_name', 'last_name', 'office']),
@@ -38,7 +38,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 
 
-    Route::apiResource('documents', DocumentController::class)->only(['show']);
+    Route::apiResource('documents', DocumentController::class)->only(['store', 'show']);
     Route::apiResource('dashboard', DashboardController::class);
     Route::apiResource('document/assignments', DocumentAssignmentController::class)->only(['index', 'store']);
     Route::apiResource('notifications', NotificationController::class)->only(['index', 'show']);
