@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Actions;
 use App\Enums\CategoryType;
 use App\Helpers\ApiResponse;
 use App\Http\Requests\StoreDocumentRequest;
+use App\Models\DocAssignmentAction;
 use Illuminate\Http\Request;
 
 use App\Models\Document;
@@ -12,6 +14,7 @@ use App\Models\DocumentAssignment;
 use App\Models\DocumentFile;
 use App\Models\Status;
 use App\Services\CloudinaryService;
+use App\Services\DocumentDownloadService;
 use App\Services\DocumentService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Spatie\Permission\Exceptions\UnauthorizedException;
@@ -97,7 +100,25 @@ class DocumentController extends Controller
             });
 
         return ApiResponse::success(data: $notCompletedAssignments);
+    }
 
+
+    public function downloadSigned(Request $request, DocumentDownloadService $pdfService)
+    {
+        $cloudUrl = $request->input('cloud_pdf_url');
+
+        $actions = DocAssignmentAction::where('action', Actions::SIGNED->value)
+            ->orderBy('created_at')
+            ->get();
+
+        $signatories = $pdfService->buildSignatoriesFromActions($actions);
+
+        return $pdfService->downloadSignedPdfResponse(
+            $cloudUrl,
+            $signatories,
+            'DocuSphere DTS',
+            'official_signed.pdf'
+        );
     }
 
 
