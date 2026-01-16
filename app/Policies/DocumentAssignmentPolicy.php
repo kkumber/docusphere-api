@@ -40,8 +40,8 @@ class DocumentAssignmentPolicy
         }
 
         // Chiefs and Staff cannot assign to Records
-        if ($target->hasRole('records')) {
-            return false;
+        if (!$target->hasRole('records')) {
+            return true;
         }
 
         return false;

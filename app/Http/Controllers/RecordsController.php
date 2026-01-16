@@ -9,6 +9,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Models\Document;
 use App\Models\Status;
 use App\Services\DocumentService;
+use Symfony\Component\HttpKernel\HttpCache\Store;
 
 class RecordsController extends Controller
 {
@@ -55,4 +56,13 @@ class RecordsController extends Controller
         $document->delete();
         return ApiResponse::success('Document deleted');
     }
+
+    public function archive(Document $document)
+    {
+        $this->authorize('update', $document);
+        $document->update(['status_id' => Status::DOC_ARCHIVED]);
+        return ApiResponse::success('Document archived');
+    }
+
+
 }

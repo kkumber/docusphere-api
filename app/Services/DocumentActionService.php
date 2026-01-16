@@ -29,7 +29,7 @@ class DocumentActionService
         // Check if user can perform actions
         $assignment = $this->canPerformAction($document, $user, $action);
 
-        // Save document response file
+        // Save attachments as new record in documentFile
         if ($statusId === Status::DOC_ASSIGN_RESPONDED && $file) {
             $this->saveDocumentResponse($file, $document, $user);
         }
@@ -51,7 +51,6 @@ class DocumentActionService
                     'performed_by' => $user->id,
                     'remarks' => $remarks ?? null
                 ]);
-
                 
                 // Check if user is sds
                 $isSds = $user->getRoleAttribute() === 'sds';
@@ -63,6 +62,13 @@ class DocumentActionService
                     ]);
 
                     event(new DocumentCompleted($document));
+                }
+
+                // update document status if for drafts approval
+                if ($document->status_id === Status::DOC_DRAFT_IN_REVIEW && $action === Actions::APPROVED->value) {
+                    $document->update([
+                        'status_id' => Status::DOC_DRAFT_APPROVED
+                    ]);
                 }
                 
             });
@@ -130,8 +136,8 @@ class DocumentActionService
             );
         }
 
-        // 6. Prevent action on completed document
-        if ($document->status_id === Status::DOC_COMPLETED || $document->status_id === Status::DOC_ARCHIVED) {
+        // 6. Prevent action on completed document and a completed draft
+        if ($document->status_id === Status::DOC_COMPLETED || $document->status_id === Status::DOC_ARCHIVED || $document->status_id === Status::DOC_DRAFT_APPROVED) {
             throw new DomainException(
                 'You can no longer perform this action on the document.'
             );

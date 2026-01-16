@@ -27,18 +27,18 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Get All Users by Role
     Route::get('/users/roles', function () {
         $usersByRole = [
-            'admin' => User::role('admin')->get(['id', 'first_name', 'last_name', 'office']),
-            'records' => User::role('records')->get(['id', 'first_name', 'last_name', 'office']),
-            'sds' => User::role('sds')->get(['id', 'first_name', 'last_name', 'office']),
-            'chief' => User::role('chief')->get(['id', 'first_name', 'last_name', 'office']),
-            'staff' => User::role('staff')->get(['id', 'first_name', 'last_name', 'office']),
+            'admin' => User::role('admin')->orderBy('first_name')->get(['id', 'first_name', 'last_name', 'office']),
+            'records' => User::role('records')->where('email', 'docusphere@records.com')->get(['id', 'first_name', 'last_name', 'office']),
+            'sds' => User::role('sds')->orderBy('first_name')->get(['id', 'first_name', 'last_name', 'office']),
+            'chief' => User::role('chief')->orderBy('first_name')->get(['id', 'first_name', 'last_name', 'office']),
+            'staff' => User::role('staff')->orderBy('first_name')->get(['id', 'first_name', 'last_name', 'office']),
         ];
         
         return ApiResponse::success(data: $usersByRole);
     });
 
 
-    Route::apiResource('documents', DocumentController::class)->only(['show']);
+    Route::apiResource('documents', DocumentController::class)->only(['store', 'show']);
     Route::apiResource('dashboard', DashboardController::class);
     Route::apiResource('document/assignments', DocumentAssignmentController::class)->only(['index', 'store']);
     Route::apiResource('notifications', NotificationController::class)->only(['index', 'show']);
@@ -71,4 +71,5 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
 
 Route::middleware(['auth:sanctum', 'role:admin|records'])->group(function () {
     Route::apiResource('/record/documents', RecordsController::class);
+    Route::patch('/record/documents/{document}/archive', [RecordsController::class, 'archive']);
 });

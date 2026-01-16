@@ -82,7 +82,11 @@ class DocumentActionController extends Controller
     {
         $user = auth()->user();
 
-        $response = $this->documentActionService->performAction($document, $user, Status::DOC_ASSIGN_APPROVED, Actions::APPROVED->value);
+        if ($document->status_id === Status::DOC_DRAFT_IN_REVIEW) {
+            $response = $this->documentActionService->performAction($document, $user, Status::DOC_DRAFT_APPROVED, Actions::APPROVED->value);
+        } else {
+            $response = $this->documentActionService->performAction($document, $user, Status::DOC_ASSIGN_APPROVED, Actions::APPROVED->value);
+        }
 
         return $this->isSuccessResponse($response);
     }

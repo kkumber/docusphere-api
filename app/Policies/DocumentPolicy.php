@@ -25,6 +25,10 @@ class DocumentPolicy
             return true;
         }
 
+        if ($document->uploaded_by === $user->id) {
+            return true;
+        }
+
         return $document->documentAssignments()->where('assigned_to', $user->id)->exists();
     }
 

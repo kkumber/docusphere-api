@@ -39,6 +39,11 @@ class StatusSeeder extends Seeder
             ['module' => 'document_tracking', 'code' => 'COMPLETED',  'label' => 'Completed'],
             ['module' => 'document_tracking', 'code' => 'RETURNED',   'label' => 'Returned'],
             ['module' => 'document_tracking', 'code' => 'APPROVED',   'label' => 'Approved'],
+
+            // document drafts
+            ['module' => 'document_draft', 'code' => 'PENDING',  'label' => 'Pending'],
+            ['module' => 'document_draft', 'code' => 'IN_REVIEW',  'label' => 'In Review'],
+            ['module' => 'document_draft', 'code' => 'APPROVED', 'label' => 'Approved'],
         ];
 
 
