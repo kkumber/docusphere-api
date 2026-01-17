@@ -103,19 +103,22 @@ class DocumentController extends Controller
     }
 
 
-    public function downloadSigned(Request $request, DocumentDownloadService $pdfService)
+    public function downloadSigned(Document $document, Request $request, DocumentDownloadService $pdfService)
     {
+        $this->authorize('download', $document);
         $cloudUrl = $request->input('cloud_pdf_url');
+        $actions = $document->documentAssignments()->with('actions')->get()->pluck('actions')->flatten();
 
-        $actions = DocAssignmentAction::where('action', Actions::SIGNED->value)
-            ->orderBy('created_at')
-            ->get();
-
+        // Build SIGNED actions only for the first page
         $signatories = $pdfService->buildSignatoriesFromActions($actions);
+        
+        // Build ALL actions for the audit trail page
+        $actionLogs = $pdfService->buildActionLogsFromActions($actions);
 
         return $pdfService->downloadSignedPdfResponse(
             $cloudUrl,
             $signatories,
+            $actionLogs, 
             'DocuSphere DTS',
             'official_signed.pdf'
         );

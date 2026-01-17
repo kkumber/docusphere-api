@@ -61,7 +61,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/assignment-status', [DocumentController::class, 'getAllAssignmentStatus']); 
     });
 
-    Route::get('download-signed-official', [DocumentController::class, 'downloadSigned']);
+    Route::get('download-logs/{document}', [DocumentController::class, 'downloadSigned']);
 
 });
 

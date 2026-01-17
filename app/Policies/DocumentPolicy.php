@@ -32,6 +32,11 @@ class DocumentPolicy
         return $document->documentAssignments()->where('assigned_to', $user->id)->exists();
     }
 
+    public function download(User $user, Document $document): bool
+    {
+        return $user->hasAnyRole(['admin', 'records', 'sds']);
+    }
+
     /**
      * Determine whether the user can create models.
      */
