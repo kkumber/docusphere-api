@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Helpers\ApiResponse;
 use App\Models\Notification;
 use Illuminate\Http\Request;
+use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Facades\DB;
 
 class NotificationController extends Controller
@@ -29,9 +30,10 @@ class NotificationController extends Controller
     /**
      * @param array<int> $notifications
      */
-    public function markAsRead(array $notifications)
+    public function markAsRead(Request $request)
     {
         $userId = auth()->id();
+        $notifications = $request->input('notifications');
 
         $updated = Notification::whereIn('id', $notifications)
             ->where('user_id', $userId)
@@ -45,9 +47,10 @@ class NotificationController extends Controller
         ]);
     }
 
-    public function markAsUnread(array $notifications)
+    public function markAsUnread(Request $request)
     {
         $userId = auth()->id();
+        $notifications = $request->input('notifications');
 
         $updated = Notification::whereIn('id', $notifications)
             ->where('user_id', $userId)
