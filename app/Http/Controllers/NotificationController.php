@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Helpers\ApiResponse;
 use App\Models\Notification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class NotificationController extends Controller
 {
@@ -25,11 +26,42 @@ class NotificationController extends Controller
         return ApiResponse::success(data: $notifications);
     }
 
-    public function readNotification(Notification $notification)
+    /**
+     * @param array<int> $notifications
+     */
+    public function markAsRead(array $notifications)
     {
-        $notification->update(['is_read' => true]);
-        return ApiResponse::success(data: $notification);
+        $userId = auth()->id();
+
+        $updated = Notification::whereIn('id', $notifications)
+            ->where('user_id', $userId)
+            ->where('is_read', false)
+            ->update([
+                'is_read' => true,
+            ]);
+
+        return ApiResponse::success(data: [
+            'updated' => $updated,
+        ]);
     }
+
+    public function markAsUnread(array $notifications)
+    {
+        $userId = auth()->id();
+
+        $updated = Notification::whereIn('id', $notifications)
+            ->where('user_id', $userId)
+            ->where('is_read', true)
+            ->update([
+                'is_read' => false,
+            ]);
+
+        return ApiResponse::success(data: [
+            'updated' => $updated,
+        ]);
+    }
+
+
 
     /**
      * Display the specified resource.

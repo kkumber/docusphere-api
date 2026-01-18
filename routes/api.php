@@ -70,10 +70,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('download-logs/{document}', [DocumentController::class, 'downloadSigned']);
 
     // Notifications
-    Route::apiResource('notifications', NotificationController::class)->only(['index', 'show']);
     Route::get('notifications/limit', [NotificationController::class, 'listNotificationWithLimit']);
-    Route::patch('notifications/{notification}/read', [NotificationController::class, 'readNotification']);
-
+    Route::apiResource('notifications', NotificationController::class)->only(['index', 'show']);
+    Route::post('notifications/read', [NotificationController::class, 'markAsRead']);
+    Route::post('notifications/unread', [NotificationController::class, 'markAsUnread']);
 
 });
 
