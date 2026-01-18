@@ -37,12 +37,16 @@ Route::middleware(['auth:sanctum'])->group(function () {
         return ApiResponse::success(data: $usersByRole);
     });
 
-
+    // Document
     Route::apiResource('documents', DocumentController::class)->only(['store', 'show']);
-    Route::apiResource('dashboard', DashboardController::class);
-    Route::apiResource('document/assignments', DocumentAssignmentController::class)->only(['index', 'store']);
-    Route::apiResource('notifications', NotificationController::class)->only(['index', 'show']);
 
+    // Dashboard Data
+    Route::apiResource('dashboard', DashboardController::class);
+
+    // Document Assignment list and upload
+    Route::apiResource('document/assignments', DocumentAssignmentController::class)->only(['index', 'store']);
+
+    // Document Actions
     Route::prefix('document-actions/document/{document}')->group(function () {
         Route::get('actions', [DocumentActionController::class, 'index']);
         Route::get('details', [DocumentActionController::class, 'details']);
@@ -54,6 +58,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('respond', [DocumentActionController::class, 'respond']);
     });
 
+    // Document Details
     Route::prefix('/document/{document}')->group(function () {
         Route::get('/track', [DocumentTrackingController::class, 'index']);
         Route::get('/attachments', [DocAssignmentActionController::class, 'getAllAttachments']);
@@ -61,7 +66,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/assignment-status', [DocumentController::class, 'getAllAssignmentStatus']); 
     });
 
+    // Download DOcument
     Route::get('download-logs/{document}', [DocumentController::class, 'downloadSigned']);
+
+    // Notifications
+    Route::apiResource('notifications', NotificationController::class)->only(['index', 'show']);
+    Route::get('notifications/limit', [NotificationController::class, 'listNotificationWithLimit']);
+    Route::patch('notifications/{notification}/read', [NotificationController::class, 'readNotification']);
+
 
 });
 
