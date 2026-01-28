@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Document;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\UploadedFile;
@@ -117,17 +118,6 @@ class CloudinaryService
         }
     }
 
-
-    //         ✅ Download version (forces browser download)
-// return $this->cloudinary
-//     ->raw($publicId)
-//     ->download([
-//         'type'          => 'private',
-//         'sign_url'      => true,
-//         'secure'        => true,
-//         'expires_at'    => time() + $expiresInSeconds,
-//     ]);
-
     private function generateSignature(string $publicId, int $expiresAt): string
     {
         $apiSecret = config('cloudinary.api_secret');
@@ -135,5 +125,42 @@ class CloudinaryService
         
         $toSign = "timestamp={$timestamp}&public_id={$publicId}";
         return hash('sha256', $toSign . $apiSecret);
+    }
+
+    /**
+     * Delete resources via public ids
+     * @param array of strings $publicIds
+     */
+    public function destroyFromCloudinary(array $publicIds): void
+    {
+        try {
+            Log::info('Deleting File from Cloudinary', [
+                'public_ids' => $publicIds
+            ]);
+
+            $result = $this->cloudinary
+            ->adminApi()
+            ->deleteAssets($publicIds);
+
+        if (!isset($result['deleted'])) {
+            throw new \RuntimeException('Unexpected Cloudinary response.');
+        }
+
+        $failed = collect($result['deleted'])
+            ->filter(fn ($status) => $status !== 'deleted');
+
+        if ($failed->isNotEmpty()) {
+            Log::warning('Some Cloudinary assets were not deleted', [
+                'failed' => $failed,
+            ]);
+        }
+        } catch (\Throwable $e) {
+            Log::error('Failed to delete file from Cloudinary', [
+                'public_ids' => $publicIds,
+                'message'   => $e->getMessage(),
+            ]);
+
+            throw new \RuntimeException('Failed to delete file from Cloudinary.');
+        }
     }
 }

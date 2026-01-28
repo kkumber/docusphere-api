@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Models\Document;
 use App\Models\Status;
+use App\Services\CloudinaryService;
 use App\Services\DocumentService;
 use Symfony\Component\HttpKernel\HttpCache\Store;
 
@@ -50,9 +51,14 @@ class RecordsController extends Controller
         return $apiResponse->success(data: $result);
     }
 
-    public function delete(Document $document)
+    // Delete from database and from cloudinary
+    public function destroy(Document $document, CloudinaryService $cloudinaryService)
     {
         $this->authorize('delete', $document);
+
+        $documentPublicIds = $document->documentFiles()->pluck('public_id')->toArray();
+        $cloudinaryService->destroyFromCloudinary($documentPublicIds);
+
         $document->delete();
         return ApiResponse::success('Document deleted');
     }
@@ -60,6 +66,15 @@ class RecordsController extends Controller
     public function archive(Document $document)
     {
         $this->authorize('update', $document);
+
+        if ($document->status_id === Status::DOC_ARCHIVED) {
+            return ApiResponse::error('Document already archived');
+        }
+
+        if ($document->status_id !== Status::DOC_COMPLETED) {
+            return ApiResponse::error('Document not completed');
+        }
+
         $document->update(['status_id' => Status::DOC_ARCHIVED]);
         return ApiResponse::success('Document archived');
     }
