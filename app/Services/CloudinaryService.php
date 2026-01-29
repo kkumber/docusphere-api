@@ -140,7 +140,10 @@ class CloudinaryService
 
             $result = $this->cloudinary
             ->adminApi()
-            ->deleteAssets($publicIds);
+            ->deleteAssets($publicIds, [
+                'resource_type' => 'raw',
+                'type' => 'private'
+            ]);
 
         if (!isset($result['deleted'])) {
             throw new \RuntimeException('Unexpected Cloudinary response.');
@@ -154,6 +157,12 @@ class CloudinaryService
                 'failed' => $failed,
             ]);
         }
+
+        Log::info('Deleted File from Cloudinary', [
+            'result' => $result,
+            'public_ids' => $publicIds,
+        ]);
+
         } catch (\Throwable $e) {
             Log::error('Failed to delete file from Cloudinary', [
                 'public_ids' => $publicIds,
