@@ -37,11 +37,6 @@ class Document extends Model
         return $this->hasMany(DocumentAssignment::class);
     }
 
-    public function DocResponseFiles() 
-    {
-        return $this->hasMany(DocResponseFile::class);
-    }
-
     public function status()
     {
         return $this->belongsTo(Status::class);
@@ -52,15 +47,6 @@ class Document extends Model
         return $this->hasMany(DocumentTracking::class);
     }
 
-    public function documentVersions()
-    {
-        return $this->hasMany(DocumentVersion::class);
-    }
-
-    public function documentComments()
-    {
-        return $this->hasMany(DocumentComment::class);
-    }
 
     public function auditLogs()
     {
