@@ -51,8 +51,27 @@ class RejectedDocumentNotification
             ];
         }
 
-        DB::transaction(function () use ($notifyRecords) {
+        DB::transaction(function () use ($notifyRecords, $event, $remarks) {
             Notification::insert($notifyRecords);
+
+            // check if notification already exists
+            if (Notification::where('user_id', $event->document->uploaded_by)->where('document_id', $event->document->id)->exists()) {
+                return;
+            }
+                
+            // create notification for document uploader
+            Notification::create([
+                'user_id' => $event->document->uploaded_by,
+                'document_id' => $event->document->id,
+                'subject' => 'Document ' . $event->document->tracking_no . ' was Rejected',
+                'data' => json_encode([
+                    'request_type' => $event->document->request_type,
+                    'instructions' => $remarks,
+                ]),
+                'is_read' => false,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
         });
     }
 }
