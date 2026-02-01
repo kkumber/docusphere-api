@@ -38,7 +38,7 @@ class DocumentAssignmentController extends Controller
                     'id' => $documentAssignment->document->id,
                     'doc_assignment_id' => $documentAssignment->id,
                     'instructions' => $documentAssignment->instructions,
-                    'status_id' => $documentAssignment->status->id,
+                    'status_id' => $documentAssignment->document->status_id == Status::DOC_ARCHIVED ? Status::DOC_ARCHIVED : $documentAssignment->status->id,
                     'request_type' => $documentAssignment->request_type,
                     'due_date' => $documentAssignment->due_date,
                     'tracking_no' => $documentAssignment->document->tracking_no,
