@@ -45,6 +45,7 @@ class DocumentAssignmentController extends Controller
                     'title' => $documentAssignment->document->title,
                     'category' => $documentAssignment->document->category,
                     'originating_office' => $documentAssignment->document->originating_office,
+                    'uploaded_by' => $documentAssignment->document->uploaded_by
                 ];
             });
 
@@ -64,6 +65,8 @@ class DocumentAssignmentController extends Controller
                 'title' => $d->title,
                 'category' => $d->category,
                 'originating_office' => $d->originating_office,
+                'uploaded_by' => $d->uploaded_by
+
             ]);
 
         $documents = $assignments->concat($drafts)

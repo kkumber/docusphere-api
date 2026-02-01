@@ -96,7 +96,7 @@ class DocumentActionService
         $assignment = $this->getDocumentAssignment($document, $user);
 
         // 3. Lazily create assignment ONLY if uploader and none exists
-        if (!$assignment && $document->uploaded_by === $user->id) {
+        if (!$assignment && ($document->uploaded_by === $user->id || in_array($user->getRoleAttribute(), ['admin', 'records']))) {
             $assignment = $this->createDocumentAssignment($user, $document);
         }
 
