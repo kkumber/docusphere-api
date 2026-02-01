@@ -53,10 +53,10 @@ class DocumentActionService
                 ]);
                 
                 // Check if user is sds
-                $isSds = $user->getRoleAttribute() === 'sds';
+                $isSdsOrAbove = in_array($user->getRoleAttribute(), ['admin', 'records', 'sds']);
 
                 // if sds we create a new notification of completed document to send to all records and then we update doc status to completed
-                if ($isSds && $action === Actions::COMPLETED->value) {
+                if ($isSdsOrAbove && $action === Actions::COMPLETED->value) {
                     $document->update([
                         'status_id' => Status::DOC_COMPLETED
                     ]);
