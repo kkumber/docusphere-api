@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\Actions;
 use App\Events\DocumentCompleted;
+use App\Events\DocumentRejected;
 use App\Helpers\ApiResponse;
 use App\Models\DocAssignmentAction;
 use App\Models\DocumentAssignment;
@@ -54,6 +55,7 @@ class DocumentActionService
                 
                 // Check if user is sds
                 $isSdsOrAbove = in_array($user->getRoleAttribute(), ['admin', 'records', 'sds']);
+                $IsSds = $user->getRoleAttribute() === 'sds';
 
                 // if sds we create a new notification of completed document to send to all records and then we update doc status to completed
                 if ($isSdsOrAbove && $action === Actions::COMPLETED->value) {
@@ -62,6 +64,15 @@ class DocumentActionService
                     ]);
 
                     event(new DocumentCompleted($document));
+                }
+
+                // ONLY SDS CAN REJECT
+                if ($IsSds && $action === Actions::REJECTED->value) {
+                    $document->update([
+                        'status_id' => Status::DOC_REJECTED
+                    ]);
+
+                    event(new DocumentRejected($document));
                 }
 
                 // update document status if for drafts approval
@@ -90,6 +101,10 @@ class DocumentActionService
         // 1. Validate action enum
         if (!Actions::tryFrom($action)) {
             throw new DomainException('Invalid action');
+        }
+
+        if ($document->status_id === Status::DOC_REJECTED) {
+            throw new DomainException('Document has been rejected by School Division Superintendent.');
         }
 
         // 2. Get assignment

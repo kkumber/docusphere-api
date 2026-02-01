@@ -126,6 +126,20 @@ class DocumentActionController extends Controller
         return $this->isSuccessResponse($response);
     }
 
+    public function reject(Document $document, Request $request)
+    {
+        $user = auth()->user();
+        $this->authorize('reject', $document);
+
+        $validated = $request->validate([
+            'remarks' => ['required', 'string'],
+        ]);
+
+        $response = $this->documentActionService->performAction($document, $user, Status::DOC_REJECTED, Actions::REJECTED->value, remarks: $validated['remarks']);
+
+        return $this->isSuccessResponse($response);
+    }
+
 
     private function isSuccessResponse($response) {
         return $response['success'] ? ApiResponse::success(message: $response['message']) : ApiResponse::error(message: $response['message']);

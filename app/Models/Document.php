@@ -57,4 +57,13 @@ class Document extends Model
     {
         return $this->hasMany(Notification::class);
     }
+
+    public function actions()
+    {
+        return $this->hasManyThrough(
+            DocAssignmentAction::class,
+            DocumentAssignment::class
+        );
+    }
+
 }

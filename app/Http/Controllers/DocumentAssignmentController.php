@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Actions;
 use App\Helpers\ApiResponse;
 use App\Http\Requests\StoreDocumentAssignmentRequest;
 use App\Models\Document;
@@ -88,11 +89,17 @@ class DocumentAssignmentController extends Controller
         // we are expecting an array of user ids
         $targetUsers = User::findOrFail($validated['assigned_to']);
         $documentAssignments = DocumentAssignment::with('document', 'assignee', 'status')->get();
-
+        $IsDocumentRejected = Document::whereHas('actions', function ($q) {
+            $q->where('action', Actions::REJECTED->value);
+        })->exists();
 
         foreach ($targetUsers as $targetUser) {
 
             $this->authorize('assign', [DocumentAssignment::class, $targetUser]);
+
+            if ($IsDocumentRejected) {
+                return ApiResponse::error(message: 'Cannot assign document: Document has been rejected.');
+            }
 
             // Check if an assignment already exists for this user and is pending
             $existingAssignment = $documentAssignments->first(function($assignment) use ($targetUser, $validated) {

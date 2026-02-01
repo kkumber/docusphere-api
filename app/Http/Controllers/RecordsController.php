@@ -31,7 +31,7 @@ class RecordsController extends Controller
         $user = auth()->user();
 
         $documentDetails = [
-            'tracking_no' => $validated['tracking_no'],
+            'tracking_no' => strtoupper($validated['tracking_no']),
             'title' => $validated['title'],
             'instructions' => $validated['instructions'] ?? null,
             'category' => $validated['category'],

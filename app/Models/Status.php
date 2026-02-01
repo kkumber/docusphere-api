@@ -40,7 +40,7 @@ class Status extends Model
     public const DOC_DRAFT_IN_REVIEW = 19;
     public const DOC_DRAFT_APPROVED = 20;
     
-
+    public const DOC_REJECTED = 21;
 
     protected $fillable = [
         'module',
@@ -55,6 +55,7 @@ class Status extends Model
         self::DOC_COMPLETED => 'Completed',
         self::DOC_DELAYED   => 'Delayed',
         self::DOC_RELEASED  => 'Released',
+        self::DOC_REJECTED  => 'Rejected',
 
         // assignment
         self::DOC_ASSIGN_PENDING      => 'Pending',
