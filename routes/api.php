@@ -71,6 +71,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::patch('sign', [DocumentActionController::class, 'sign']);
         Route::post('review', [DocumentActionController::class, 'review']);
         Route::post('respond', [DocumentActionController::class, 'respond']);
+        Route::post('reject', [DocumentActionController::class, 'reject']);
     });
 
     // Document Details

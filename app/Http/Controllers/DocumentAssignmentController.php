@@ -91,14 +91,16 @@ class DocumentAssignmentController extends Controller
         $documentAssignments = DocumentAssignment::with('document', 'assignee', 'status')->get();
         $IsDocumentRejected = Document::whereHas('actions', function ($q) {
             $q->where('action', Actions::REJECTED->value);
-        })->exists();
+        })
+        ->where('id', $validated['document_id'])
+        ->exists();
 
         foreach ($targetUsers as $targetUser) {
 
             $this->authorize('assign', [DocumentAssignment::class, $targetUser]);
 
             if ($IsDocumentRejected) {
-                return ApiResponse::error(message: 'Cannot assign document: Document has been rejected.');
+                return ApiResponse::error(message: 'Assignment not allowed. This document has already been rejected and is no longer eligible for assignment.');
             }
 
             // Check if an assignment already exists for this user and is pending
@@ -109,7 +111,7 @@ class DocumentAssignmentController extends Controller
             });
 
             if ($existingAssignment) {
-                return ApiResponse::error(message: 'Cannot assign document:  ' . $targetUser->first_name . ' ' . $targetUser->last_name . ' already has a pending assignment with this document that has not been completed yet.');
+                return ApiResponse::error(message: 'Assignment not allowed. ' . $targetUser->first_name . ' ' . $targetUser->last_name . ' already has a pending assignment for this document. Please wait for the assignment to be completed or resolved before assigning again.');
             }
         }
        

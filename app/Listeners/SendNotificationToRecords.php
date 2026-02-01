@@ -31,7 +31,7 @@ class SendNotificationToRecords
             $notifyRecords[] = [
                 'user_id' => $record->id,
                 'document_id' => $event->document->id,
-                'subject' => 'Document ' . $event->document->title . ' has been completed',
+                'subject' => 'Document ' . $event->document->tracking_no . ' has been completed',
                 'data' => null,
                 'is_read' => false,
                 'created_at' => now(),

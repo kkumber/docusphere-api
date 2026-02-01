@@ -40,11 +40,11 @@ class RejectedDocumentNotification
             $notifyRecords[] = [
                 'user_id' => $record->id,
                 'document_id' => $event->document->id,
-                'subject' => 'A Document was Rejected',
-                'data' => [
+                'subject' => 'Document ' . $event->document->tracking_no . ' was Rejected',
+                'data' => json_encode([
                     'request_type' => $event->document->request_type,
                     'instructions' => $remarks,
-                ],
+                ]),
                 'is_read' => false,
                 'created_at' => now(),
                 'updated_at' => now(),

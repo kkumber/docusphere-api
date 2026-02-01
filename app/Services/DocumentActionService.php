@@ -15,6 +15,7 @@ use App\Models\Status;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
@@ -100,11 +101,11 @@ class DocumentActionService
 
         // 1. Validate action enum
         if (!Actions::tryFrom($action)) {
-            throw new DomainException('Invalid action');
+            throw new DomainException('The action you attempted is not recognized by the system.');
         }
 
         if ($document->status_id === Status::DOC_REJECTED) {
-            throw new DomainException('Document has been rejected by School Division Superintendent.');
+            throw new DomainException('This document has been rejected by the School Division Superintendent and is no longer actionable.');
         }
 
         // 2. Get assignment
@@ -116,7 +117,7 @@ class DocumentActionService
         }
 
         if (!$assignment) {
-            throw new DomainException('No active assignment found');
+            throw new DomainException('You do not have an active assignment for this document.');
         }
 
 
@@ -134,28 +135,24 @@ class DocumentActionService
         if ($alreadyPerformed) {
             // Non-uploader: never allowed to repeat
             if ($user->id !== $document->uploaded_by) {
-                throw new DomainException("You have already {$action} this document.");
+                throw new DomainException("You have already performed the “{$action}” action on this document.");
             }
 
             // Uploader: only allowed to repeat specific actions
             if (! in_array($action, $repeatableActionsForUploader, true)) {
-                throw new DomainException("You have already {$action} this document.");
+                throw new DomainException("The “{$action}” action cannot be repeated for this document.");
             }
         }
 
 
         // 5. Prevent action on completed assignment
         if ($assignment->status_id === Status::DOC_ASSIGN_COMPLETED) {
-            throw new DomainException(
-                'You can no longer perform this action on the document.'
-            );
+            throw new DomainException('This assignment has been completed. No further actions can be performed.');
         }
 
         // 6. Prevent action on completed document and a completed draft
         if ($document->status_id === Status::DOC_COMPLETED || $document->status_id === Status::DOC_ARCHIVED || $document->status_id === Status::DOC_DRAFT_APPROVED) {
-            throw new DomainException(
-                'You can no longer perform this action on the document.'
-            );
+            throw new DomainException('This document has been finalized and cannot be modified or acted upon.');
         }
 
         // 7. Prevent premature completion
@@ -166,9 +163,8 @@ class DocumentActionService
                 Status::DOC_ASSIGN_DELAYED,
             ])
         ) {
-            throw new DomainException(
-                'You must acknowledge, approve, respond, review, or sign the document before marking it as completed.'
-            );
+            throw new DomainException('All required actions (acknowledge, approve, respond, review, or sign) must be completed before marking this assignment as completed.');
+
         }
 
         return $assignment;
