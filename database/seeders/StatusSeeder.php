@@ -44,7 +44,7 @@ class StatusSeeder extends Seeder
             ['module' => 'document_draft', 'code' => 'PENDING',  'label' => 'Pending'],
             ['module' => 'document_draft', 'code' => 'IN_REVIEW',  'label' => 'In Review'],
             ['module' => 'document_draft', 'code' => 'APPROVED', 'label' => 'Approved'],
-            ['module' => 'document_draft', 'code' => 'FOR_LOGGING', 'label' => 'For Logging'],
+            ['module' => 'document_draft', 'code' => 'FOR_ISSUANCE', 'label' => 'For Issuance'],
 
             // SDS rejection
             ['module' => 'document', 'code' => 'REJECTED' , 'label' => 'Rejected'],

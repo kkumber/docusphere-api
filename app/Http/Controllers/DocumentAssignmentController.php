@@ -39,7 +39,7 @@ class DocumentAssignmentController extends Controller
                     'id' => $documentAssignment->document->id,
                     'doc_assignment_id' => $documentAssignment->id,
                     'instructions' => $documentAssignment->instructions,
-                    'status_id' => $documentAssignment->document->status_id == Status::DOC_ARCHIVED ? Status::DOC_ARCHIVED : $documentAssignment->status->id,
+                    'status_id' => in_array($documentAssignment->document->status_id, [Status::DOC_COMPLETED, Status::DOC_ARCHIVED, Status::DOC_REJECTED, Status::DOC_DRAFT_FOR_ISSUANCE, Status::DOC_DRAFT_APPROVED]) ? $documentAssignment->document->status->id : $documentAssignment->status->id,
                     'request_type' => $documentAssignment->request_type,
                     'due_date' => $documentAssignment->due_date,
                     'tracking_no' => $documentAssignment->document->tracking_no,
@@ -52,7 +52,7 @@ class DocumentAssignmentController extends Controller
 
         $drafts = Document::with('status', 'user')
             ->where('uploaded_by', $userId)
-            ->whereIn('status_id', [Status::DOC_DRAFT_PENDING, Status::DOC_DRAFT_IN_REVIEW, Status::DOC_DRAFT_APPROVED])
+            ->whereIn('status_id', [Status::DOC_DRAFT_PENDING, Status::DOC_DRAFT_IN_REVIEW, Status::DOC_DRAFT_APPROVED, Status::DOC_DRAFT_FOR_ISSUANCE, Status::DOC_REJECTED])
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(fn($d) => [
@@ -79,7 +79,7 @@ class DocumentAssignmentController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Create a new assignment
      */
     public function store(StoreDocumentAssignmentRequest $request)
     {

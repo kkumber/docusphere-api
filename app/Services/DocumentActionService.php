@@ -16,6 +16,7 @@ use DomainException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
@@ -32,19 +33,22 @@ class DocumentActionService
         $assignment = $this->canPerformAction($document, $user, $action);
 
         // Save attachments as new record in documentFile
-        if ($statusId === Status::DOC_ASSIGN_RESPONDED && $file) {
+        if (Actions::RESPONDED->value === $action && $file) {
             $this->saveDocumentResponse($file, $document, $user);
         }
-
 
         // Transaction
         try {
             DB::transaction(function () use ($document, $assignment, $user, $statusId, $action, $remarks) {
 
                 // Update assignment
-                $assignment->update([
-                    'status_id' => $statusId,
-                ]);
+                if ($action === Actions::COMPLETED->value) {
+                    $assignment->update(['status_id' => Status::DOC_ASSIGN_COMPLETED]);
+                } else if (Str::startsWith($document->tracking_no, 'DRAFT-')) {
+                    $assignment->update(['status_id' => Status::DOC_DRAFT_IN_REVIEW]);
+                } else {
+                    $assignment->update(['status_id' => Status::DOC_PENDING]);
+                }
 
                 // create action record
                 DocAssignmentAction::create([
@@ -58,8 +62,15 @@ class DocumentActionService
                 $isSdsOrAbove = in_array($user->getRoleAttribute(), ['admin', 'records', 'sds']);
                 $IsSds = $user->getRoleAttribute() === 'sds';
 
+                // update for issuance if mark as completed
+                if ($document->status_id === Status::DOC_DRAFT_APPROVED && $action === Actions::COMPLETED->value && $IsSds) {
+                    $document->update([
+                        'status_id' => Status::DOC_DRAFT_FOR_ISSUANCE
+                    ]);
+                    event(new DocumentCompleted($document));
+                }
                 // if sds we create a new notification of completed document to send to all records and then we update doc status to completed
-                if ($isSdsOrAbove && $action === Actions::COMPLETED->value) {
+                else if ($IsSds && $action === Actions::COMPLETED->value ) {
                     $document->update([
                         'status_id' => Status::DOC_COMPLETED
                     ]);
@@ -77,7 +88,7 @@ class DocumentActionService
                 }
 
                 // update document status if for drafts approval
-                if ($document->status_id === Status::DOC_DRAFT_IN_REVIEW && $action === Actions::APPROVED->value) {
+                if ($document->status_id === Status::DOC_DRAFT_IN_REVIEW && $action === Actions::APPROVED->value && $IsSds) {
                     $document->update([
                         'status_id' => Status::DOC_DRAFT_APPROVED
                     ]);
@@ -151,7 +162,7 @@ class DocumentActionService
         }
 
         // 6. Prevent action on completed document and a completed draft
-        if ($document->status_id === Status::DOC_COMPLETED || $document->status_id === Status::DOC_ARCHIVED || $document->status_id === Status::DOC_DRAFT_APPROVED) {
+        if ($document->status_id === Status::DOC_COMPLETED || $document->status_id === Status::DOC_ARCHIVED || $document->status_id === Status::DOC_DRAFT_FOR_ISSUANCE) {
             throw new DomainException('This document has been finalized and cannot be modified or acted upon.');
         }
 

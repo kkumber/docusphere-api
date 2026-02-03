@@ -33,9 +33,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
         if ($userRole === 'admin' || $userRole === 'sds') {
             $usersByRole = [
                 'records' => User::role('records')->where('email', 'docusphere@records.com')->get(['id', 'first_name', 'last_name', 'office']),
-                'sds' => User::role('sds')->orderBy('first_name')->get(['id', 'first_name', 'last_name', 'office']),
-                'chief' => User::role('chief')->orderBy('first_name')->get(['id', 'first_name', 'last_name', 'office']),
-                'staff' => User::role('staff')->orderBy('first_name')->get(['id', 'first_name', 'last_name', 'office']),
+                'sds' => User::role('sds')->where('id', '!=', $user->id)->orderBy('first_name')->get(['id', 'first_name', 'last_name', 'office']),
+                'chief' => User::role('chief')->where('id', '!=', $user->id)->orderBy('first_name')->get(['id', 'first_name', 'last_name', 'office']),
+                'staff' => User::role('staff')->where('id', '!=', $user->id)->orderBy('first_name')->get(['id', 'first_name', 'last_name', 'office']),
             ];
         } else if ($userRole === 'records') {
             $usersByRole = [
@@ -43,9 +43,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
             ];
         } else {
             $usersByRole = [
-                'sds' => User::role('sds')->orderBy('first_name')->get(['id', 'first_name', 'last_name', 'office']),
-                'chief' => User::role('chief')->orderBy('first_name')->get(['id', 'first_name', 'last_name', 'office']),
-                'staff' => User::role('staff')->orderBy('first_name')->get(['id', 'first_name', 'last_name', 'office']),
+                'sds' => User::role('sds')->where('id', '!=', $user->id)->orderBy('first_name')->get(['id', 'first_name', 'last_name', 'office']),
+                'chief' => User::role('chief')->where('id', '!=', $user->id)->orderBy('first_name')->get(['id', 'first_name', 'last_name', 'office']),
+                'staff' => User::role('staff')->where('id', '!=', $user->id)->orderBy('first_name')->get(['id', 'first_name', 'last_name', 'office']),
             ];
         };
         

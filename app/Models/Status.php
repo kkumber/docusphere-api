@@ -39,7 +39,7 @@ class Status extends Model
     public const DOC_DRAFT_PENDING = 18;
     public const DOC_DRAFT_IN_REVIEW = 19;
     public const DOC_DRAFT_APPROVED = 20;
-    public const DOC_DRAFT_FOR_LOGGING = 21;
+    public const DOC_DRAFT_FOR_ISSUANCE = 21;
     
     public const DOC_REJECTED = 22;
 
@@ -78,7 +78,7 @@ class Status extends Model
         self::DOC_DRAFT_PENDING   => 'Pending',
         self::DOC_DRAFT_IN_REVIEW => 'In Review',
         self::DOC_DRAFT_APPROVED  => 'Approved',
-        self::DOC_DRAFT_FOR_LOGGING => 'For Logging',
+        self::DOC_DRAFT_FOR_ISSUANCE => 'For Issuance',
     ];
 
     public static function label(int $statusId): string

@@ -32,12 +32,12 @@ class DocumentAssignmentService
         }
 
         
-        DB::transaction(function () use ($assignments, $request) {
+        DB::transaction(function () use ($assignments, $request, $user) {
 
             $document = Document::lockForUpdate()->findOrFail($request['document_id']);
 
             // check if document is already released or has an assignment
-            $docHasAssignment = DocumentAssignment::where('document_id', $document->id)->exists();
+            $docHasAssignment = DocumentAssignment::where('document_id', $document->id)->where('assigned_to', '!=', $user->id)->exists();
 
             // update document status to released
             if (!$docHasAssignment) {
