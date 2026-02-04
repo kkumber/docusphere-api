@@ -53,7 +53,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 
     // Document
-    Route::apiResource('documents', DocumentController::class)->only(['store', 'show']);
+    Route::apiResource('documents', DocumentController::class)->only(['store', 'show', 'destroy']);
 
     // Dashboard Data
     Route::apiResource('dashboard', DashboardController::class);

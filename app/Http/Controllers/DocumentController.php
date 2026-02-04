@@ -103,6 +103,17 @@ class DocumentController extends Controller
         return ApiResponse::success(data: $notCompletedAssignments);
     }
 
+    public function destroy(Document $document, CloudinaryService $cloudinaryService)
+    {
+        $this->authorize('delete', $document);
+
+        $documentPublicIds = $document->documentFiles()->pluck('public_id')->toArray();
+        $cloudinaryService->destroyFromCloudinary($documentPublicIds);
+
+        $document->delete();
+        return ApiResponse::success('Document deleted');
+    }
+
 
     public function downloadSigned(Document $document, Request $request, DocumentDownloadService $pdfService)
     {
