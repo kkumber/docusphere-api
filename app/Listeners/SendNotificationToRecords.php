@@ -31,8 +31,11 @@ class SendNotificationToRecords
             $notifyRecords[] = [
                 'user_id' => $record->id,
                 'document_id' => $event->document->id,
-                'subject' => 'Document ' . $event->document->tracking_no . ' is Cleared for Records Action',
-                'data' => null,
+                'subject' => 'Document ' . $event->document->tracking_no . ' has completed processing and is ready for Records',
+                'data' => [
+                    'request_type' => $event->document->request_type,
+                    'instructions' => $event->document->instructions ?? null,
+                ],
                 'is_read' => false,
                 'created_at' => now(),
                 'updated_at' => now(),

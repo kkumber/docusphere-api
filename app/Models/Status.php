@@ -19,6 +19,7 @@ class Status extends Model
 
 
     // document_assignment
+    // NOTE: THE 5 ACTION STATES HERE ARE UNUSED. IF REMOVING MAKE SURE TO CHECK DOCUMENTACTIONCONTROLLER
     public const DOC_ASSIGN_PENDING       = 6;
     public const DOC_ASSIGN_ACKNOWLEDGED  = 7;
     public const DOC_ASSIGN_APPROVED      = 8;
