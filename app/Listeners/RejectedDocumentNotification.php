@@ -60,10 +60,10 @@ class RejectedDocumentNotification
             }
                 
             // create notification for document uploader
-            Notification::create([
+            Notification::insert([
                 'user_id' => $event->document->uploaded_by,
                 'document_id' => $event->document->id,
-                'subject' => 'Document ' . $event->document->tracking_no . ' was Rejected',
+                'subject' => 'Document ' . $event->document->tracking_no . ' was rejected',
                 'data' => json_encode([
                     'request_type' => $event->document->request_type,
                     'instructions' => $remarks,

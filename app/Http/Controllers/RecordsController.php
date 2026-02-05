@@ -52,16 +52,7 @@ class RecordsController extends Controller
     }
 
     // Delete from database and from cloudinary
-    public function destroy(Document $document, CloudinaryService $cloudinaryService)
-    {
-        $this->authorize('delete', $document);
-
-        $documentPublicIds = $document->documentFiles()->pluck('public_id')->toArray();
-        $cloudinaryService->destroyFromCloudinary($documentPublicIds);
-
-        $document->delete();
-        return ApiResponse::success('Document deleted');
-    }
+    
 
     public function archive(Document $document)
     {
