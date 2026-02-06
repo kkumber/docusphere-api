@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\DelayedDocuments;
 use App\Helpers\ApiResponse;
 use App\Http\Requests\StoreDocumentRequest;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Models\Document;
+use App\Models\Notification;
 use App\Models\Status;
 use App\Services\CloudinaryService;
 use App\Services\DocumentService;
@@ -19,6 +21,14 @@ class RecordsController extends Controller
     // View all documents in the system
     public function index()
     {
+        // check for delayed docs and update
+        $delayedDocs = Document::where('due_date', '<', now())->whereIn('status_id', [Status::DOC_PENDING, Status::DOC_RELEASED, Status::DOC_DRAFT_FOR_ISSUANCE])->pluck('id');
+
+        Document::whereIn('id', $delayedDocs)->update(['status_id' => Status::DOC_DELAYED]);
+
+        // notify for delayed docs
+        event(new DelayedDocuments($delayedDocs));
+
         $documents = Document::latest()->get();
         return ApiResponse::success(data: $documents);
     }
@@ -50,8 +60,6 @@ class RecordsController extends Controller
 
         return $apiResponse->success(data: $result);
     }
-
-    // Delete from database and from cloudinary
     
 
     public function archive(Document $document)

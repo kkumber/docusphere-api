@@ -27,6 +27,9 @@ class DocumentAssignmentController extends Controller
      */
     public function index()
     {
+        // check for delayed docs and update
+        DocumentAssignment::where('due_date', '<', now())->whereNotIn('status_id', [Status::DOC_ARCHIVED, Status::DOC_COMPLETED, Status::DOC_REJECTED, Status::DOC_DRAFT_APPROVED, Status::DOC_DRAFT_FOR_ISSUANCE])->update(['status_id' => Status::DOC_DELAYED]);
+
         $userId = auth()->id();
         $assignments = DocumentAssignment::with('document', 'status')
             ->where('assigned_to', $userId)
