@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Enums\Actions;
+use App\Events\DelayedAssigneeAssignment;
+use App\Events\DelayedAssignments;
 use App\Helpers\ApiResponse;
 use App\Http\Requests\StoreDocumentAssignmentRequest;
 use App\Models\Document;
@@ -28,7 +30,15 @@ class DocumentAssignmentController extends Controller
     public function index()
     {
         // check for delayed docs and update
-        DocumentAssignment::where('due_date', '<', now())->whereNotIn('status_id', [Status::DOC_ARCHIVED, Status::DOC_COMPLETED, Status::DOC_REJECTED, Status::DOC_DRAFT_APPROVED, Status::DOC_DRAFT_FOR_ISSUANCE])->update(['status_id' => Status::DOC_DELAYED]);
+        $delayedAssignments = DocumentAssignment::where('due_date', '<', now())->whereIn('status_id', [Status::DOC_ASSIGN_PENDING])->pluck('id');
+
+        DocumentAssignment::whereIn('id', $delayedAssignments)->update(['status_id' => Status::DOC_ASSIGN_DELAYED]);
+
+        event(new DelayedAssignments($delayedAssignments));
+
+        $extremelyDelayedAssignments = DocumentAssignment::where('due_date', '<', now()->subDays(3))->whereIn('status_id', [Status::DOC_ASSIGN_DELAYED])->pluck('id');
+        
+        event(new DelayedAssigneeAssignment($extremelyDelayedAssignments));
 
         $userId = auth()->id();
         $assignments = DocumentAssignment::with('document', 'status')
