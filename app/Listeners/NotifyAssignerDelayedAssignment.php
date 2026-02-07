@@ -29,7 +29,7 @@ class NotifyAssignerDelayedAssignment implements ShouldQueue
         $documentIds = $assignments->pluck('document_id')->unique();
 
         $existingNotifications = Notification::whereIn('document_id', $documentIds)
-            ->where('subject', 'like', '%URGENT: Document % is delayed%')
+            ->where('subject', 'like', '%URGENT: Document % has been delayed%')
             ->get()
             ->groupBy(fn ($notification) =>
                 $notification->user_id . '-' . $notification->document_id
@@ -49,7 +49,7 @@ class NotifyAssignerDelayedAssignment implements ShouldQueue
             $notificationsToInsert[] = [
                 'user_id' => $assignment->assigned_by,
                 'document_id' => $assignment->document_id,
-                'subject' => "URGENT: Document {$assignment->document->tracking_no} is delayed. Please contact user {$assignment->assignee->first_name} {$assignment->assignee->last_name} as soon as possible.",
+                'subject' => "URGENT: Document {$assignment->document->tracking_no} has been delayed for more than 3 days. Please contact user {$assignment->assignee->first_name} {$assignment->assignee->last_name} as soon as possible.",
                 'data' => json_encode([
                     'request_type' => $assignment->request_type,
                     'instructions' => $assignment->instructions ?? null,

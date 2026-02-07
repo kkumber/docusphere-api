@@ -45,7 +45,7 @@ class NotifyDelayedDocuments
                 $usersToNotify[] = [
                     'user_id' => $recordUser->id,
                     'document_id' => $document->id,
-                    'subject' => "URGENT: Document {$document->tracking_no} is delayed by {$daysDelayed} days",
+                    'subject' => "URGENT: Document {$document->tracking_no} is delayed. Please process as soon as possible.",
                     'data' => json_encode([
                         'request_type' => $document->request_type,
                         'instructions' => $document->instructions ?? null,

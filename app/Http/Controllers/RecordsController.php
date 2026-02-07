@@ -21,14 +21,6 @@ class RecordsController extends Controller
     // View all documents in the system
     public function index()
     {
-        // check for delayed docs and update
-        $delayedDocs = Document::where('due_date', '<', now())->whereIn('status_id', [Status::DOC_PENDING, Status::DOC_RELEASED, Status::DOC_DRAFT_FOR_ISSUANCE])->pluck('id');
-
-        Document::whereIn('id', $delayedDocs)->update(['status_id' => Status::DOC_DELAYED]);
-
-        // notify for delayed docs
-        event(new DelayedDocuments($delayedDocs));
-
         $documents = Document::latest()->get();
         return ApiResponse::success(data: $documents);
     }
