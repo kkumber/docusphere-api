@@ -118,6 +118,9 @@ class DocumentController extends Controller
     public function downloadSigned(Document $document, Request $request, DocumentDownloadService $pdfService)
     {
         $this->authorize('download', $document);
+
+        $user = auth()->user();
+
         $cloudUrl = $request->input('cloud_pdf_url');
         $actions = $document->documentAssignments()->with('actions')->get()->pluck('actions')->flatten();
 
@@ -132,7 +135,8 @@ class DocumentController extends Controller
             $signatories,
             $actionLogs, 
             'DocuSphere DTS',
-            'official_signed.pdf'
+            'official_signed.pdf',
+            $user
         );
     }
 
