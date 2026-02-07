@@ -23,7 +23,7 @@ class DocumentService
     public function saveDocumentWithFileUpload(array $document, int $userId, string $folder, $file)
     {
         try {
-            DB::transaction(function () use ($document, $file, $folder, $userId) {
+            return DB::transaction(function () use ($document, $file, $folder, $userId) {
                 // upload file to cloudinary first
                 $uploadedFile = $this->cloudinaryService->uploadToCloudinary($file, $folder);
 
