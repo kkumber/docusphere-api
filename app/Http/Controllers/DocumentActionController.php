@@ -17,6 +17,7 @@ use App\Services\DocumentActionService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 
 class DocumentActionController extends Controller
@@ -91,9 +92,19 @@ class DocumentActionController extends Controller
         return $this->isSuccessResponse($response);
     }
 
-    public function sign(Document $document) 
+    public function sign(Document $document, Request $request) 
     {
+        $request->validate([
+            'password' => ['required'],
+        ]);
+        
         $user = auth()->user();
+
+        if (!Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'message' => 'Invalid password'
+            ], 403);
+        }
 
         $response = $this->documentActionService->performAction($document, $user, Status::DOC_ASSIGN_SIGNED, Actions::SIGNED->value);
 
@@ -122,6 +133,20 @@ class DocumentActionController extends Controller
 
 
         $response = $this->documentActionService->performAction($document, $user, Status::DOC_ASSIGN_RESPONDED, Actions::RESPONDED->value, file: $validated['file'], remarks: $validated['remarks']);
+
+        return $this->isSuccessResponse($response);
+    }
+
+    public function reject(Document $document, Request $request)
+    {
+        $user = auth()->user();
+        $this->authorize('reject', $document);
+
+        $validated = $request->validate([
+            'remarks' => ['required', 'string'],
+        ]);
+
+        $response = $this->documentActionService->performAction($document, $user, Status::DOC_REJECTED, Actions::REJECTED->value, remarks: $validated['remarks']);
 
         return $this->isSuccessResponse($response);
     }

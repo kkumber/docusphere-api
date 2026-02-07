@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Actions;
+use App\Events\DelayedAssigneeAssignment;
+use App\Events\DelayedAssignments;
 use App\Helpers\ApiResponse;
 use App\Http\Requests\StoreDocumentAssignmentRequest;
 use App\Models\Document;
@@ -38,19 +41,20 @@ class DocumentAssignmentController extends Controller
                     'id' => $documentAssignment->document->id,
                     'doc_assignment_id' => $documentAssignment->id,
                     'instructions' => $documentAssignment->instructions,
-                    'status_id' => $documentAssignment->status->id,
+                    'status_id' => in_array($documentAssignment->document->status_id, [Status::DOC_COMPLETED, Status::DOC_ARCHIVED, Status::DOC_REJECTED, Status::DOC_DRAFT_FOR_ISSUANCE, Status::DOC_DRAFT_APPROVED]) ? $documentAssignment->document->status->id : $documentAssignment->status->id,
                     'request_type' => $documentAssignment->request_type,
                     'due_date' => $documentAssignment->due_date,
                     'tracking_no' => $documentAssignment->document->tracking_no,
                     'title' => $documentAssignment->document->title,
                     'category' => $documentAssignment->document->category,
                     'originating_office' => $documentAssignment->document->originating_office,
+                    'uploaded_by' => $documentAssignment->document->uploaded_by
                 ];
             });
 
         $drafts = Document::with('status', 'user')
             ->where('uploaded_by', $userId)
-            ->whereIn('status_id', [Status::DOC_DRAFT_PENDING, Status::DOC_DRAFT_IN_REVIEW, Status::DOC_DRAFT_APPROVED])
+            ->whereIn('status_id', [Status::DOC_DRAFT_PENDING, Status::DOC_DRAFT_IN_REVIEW, Status::DOC_DRAFT_APPROVED, Status::DOC_DRAFT_FOR_ISSUANCE, Status::DOC_REJECTED])
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(fn($d) => [
@@ -64,6 +68,8 @@ class DocumentAssignmentController extends Controller
                 'title' => $d->title,
                 'category' => $d->category,
                 'originating_office' => $d->originating_office,
+                'uploaded_by' => $d->uploaded_by
+
             ]);
 
         $documents = $assignments->concat($drafts)
@@ -75,7 +81,7 @@ class DocumentAssignmentController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Create a new assignment
      */
     public function store(StoreDocumentAssignmentRequest $request)
     {
@@ -85,11 +91,19 @@ class DocumentAssignmentController extends Controller
         // we are expecting an array of user ids
         $targetUsers = User::findOrFail($validated['assigned_to']);
         $documentAssignments = DocumentAssignment::with('document', 'assignee', 'status')->get();
-
+        $IsDocumentRejected = Document::whereHas('actions', function ($q) {
+            $q->where('action', Actions::REJECTED->value);
+        })
+        ->where('id', $validated['document_id'])
+        ->exists();
 
         foreach ($targetUsers as $targetUser) {
 
             $this->authorize('assign', [DocumentAssignment::class, $targetUser]);
+
+            if ($IsDocumentRejected) {
+                return ApiResponse::error(message: 'Assignment not allowed. This document has already been rejected and is no longer eligible for assignment.');
+            }
 
             // Check if an assignment already exists for this user and is pending
             $existingAssignment = $documentAssignments->first(function($assignment) use ($targetUser, $validated) {
@@ -99,7 +113,7 @@ class DocumentAssignmentController extends Controller
             });
 
             if ($existingAssignment) {
-                return ApiResponse::error(message: 'Cannot assign document:  ' . $targetUser->first_name . ' ' . $targetUser->last_name . ' already has a pending assignment with this document that has not been completed yet.');
+                return ApiResponse::error(message: 'Assignment not allowed. ' . $targetUser->first_name . ' ' . $targetUser->last_name . ' already has a pending assignment for this document. Please wait for the assignment to be completed or resolved before assigning again.');
             }
         }
        

@@ -23,7 +23,7 @@ class NotificationController extends Controller
     public function listNotificationWithLimit()
     {
         $user = auth()->user();
-        $notifications = Notification::where('user_id', $user->id)->latest()->limit(10)->get();
+        $notifications = Notification::where('user_id', $user->id)->where('is_read', false)->latest()->limit(10)->get();
         return ApiResponse::success(data: $notifications);
     }
 

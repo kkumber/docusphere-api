@@ -90,22 +90,22 @@ class DashboardController extends Controller
             $recordsData = [
                 'cards' => [
                     [
-                        'title' => 'Total documents',
+                        'title' => 'Documents',
                         'value' => Document::count(),
                     ],
                     [
-                        'title' => 'Total archived documents',
-                        'value' => $docStatsByStatus[Status::DOC_ARCHIVED] ?? 0,
+                        'title' => 'Released Documents',
+                        'value' => $docStatsByStatus[Status::DOC_RELEASED] ?? 0,
                     ],
                     [
-                        'title' => 'Total assigned documents',
-                        'value' => DocumentAssignment::where('assigned_by', $user->id)->count(),
-                    ],
-                    [
-                        'title' => 'Total pending documents',
+                        'title' => 'Pending Documents',
                         'value' =>
                             ($docStatsByStatus[Status::DOC_PENDING] ?? 0) +
                             ($docStatsByStatus[Status::DOC_ASSIGN_PENDING] ?? 0),
+                    ],
+                    [
+                        'title' => 'Delayed Documents',
+                        'value' => $docStatsByStatus[Status::DOC_DELAYED] ?? 0,
                     ],
                 ],
                 'area_chart' => [

@@ -37,6 +37,11 @@ class DocumentPolicy
         return $user->hasAnyRole(['admin', 'records', 'sds']);
     }
 
+    public function reject(User $user, Document $document): bool
+    {
+        return $user->hasAnyRole(['sds']);
+    }
+
     /**
      * Determine whether the user can create models.
      */
@@ -58,7 +63,11 @@ class DocumentPolicy
      */
     public function delete(User $user, Document $document): bool
     {
-        return $user->hasRole('records') || $user->hasRole('admin');
+        if( $user->hasRole('records') || $user->hasRole('admin')) {
+            return true;
+        }
+        
+        return $document->uploaded_by === $user->id;
     }
 
     /**

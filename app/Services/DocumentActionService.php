@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\Actions;
 use App\Events\DocumentCompleted;
+use App\Events\DocumentRejected;
 use App\Helpers\ApiResponse;
 use App\Models\DocAssignmentAction;
 use App\Models\DocumentAssignment;
@@ -14,6 +15,8 @@ use App\Models\Status;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
@@ -30,19 +33,22 @@ class DocumentActionService
         $assignment = $this->canPerformAction($document, $user, $action);
 
         // Save attachments as new record in documentFile
-        if ($statusId === Status::DOC_ASSIGN_RESPONDED && $file) {
+        if (Actions::RESPONDED->value === $action && $file) {
             $this->saveDocumentResponse($file, $document, $user);
         }
-
 
         // Transaction
         try {
             DB::transaction(function () use ($document, $assignment, $user, $statusId, $action, $remarks) {
 
                 // Update assignment
-                $assignment->update([
-                    'status_id' => $statusId,
-                ]);
+                if ($action === Actions::COMPLETED->value) {
+                    $assignment->update(['status_id' => Status::DOC_ASSIGN_COMPLETED]);
+                } else if (Str::startsWith($document->tracking_no, 'DRAFT-')) {
+                    $assignment->update(['status_id' => Status::DOC_DRAFT_IN_REVIEW]);
+                } else {
+                    $assignment->update(['status_id' => Status::DOC_PENDING]);
+                }
 
                 // create action record
                 DocAssignmentAction::create([
@@ -54,9 +60,17 @@ class DocumentActionService
                 
                 // Check if user is sds
                 $isSdsOrAbove = in_array($user->getRoleAttribute(), ['admin', 'records', 'sds']);
+                $IsSds = $user->getRoleAttribute() === 'sds';
 
+                // update for issuance if mark as completed
+                if ($document->status_id === Status::DOC_DRAFT_APPROVED && $action === Actions::COMPLETED->value && $IsSds) {
+                    $document->update([
+                        'status_id' => Status::DOC_DRAFT_FOR_ISSUANCE
+                    ]);
+                    event(new DocumentCompleted($document));
+                }
                 // if sds we create a new notification of completed document to send to all records and then we update doc status to completed
-                if ($isSdsOrAbove && $action === Actions::COMPLETED->value) {
+                else if ($IsSds && $action === Actions::COMPLETED->value ) {
                     $document->update([
                         'status_id' => Status::DOC_COMPLETED
                     ]);
@@ -64,8 +78,17 @@ class DocumentActionService
                     event(new DocumentCompleted($document));
                 }
 
+                // ONLY SDS CAN REJECT
+                if ($IsSds && $action === Actions::REJECTED->value) {
+                    $document->update([
+                        'status_id' => Status::DOC_REJECTED
+                    ]);
+
+                    event(new DocumentRejected($document));
+                }
+
                 // update document status if for drafts approval
-                if ($document->status_id === Status::DOC_DRAFT_IN_REVIEW && $action === Actions::APPROVED->value) {
+                if ($document->status_id === Status::DOC_DRAFT_IN_REVIEW && $action === Actions::APPROVED->value && $IsSds) {
                     $document->update([
                         'status_id' => Status::DOC_DRAFT_APPROVED
                     ]);
@@ -89,19 +112,23 @@ class DocumentActionService
 
         // 1. Validate action enum
         if (!Actions::tryFrom($action)) {
-            throw new DomainException('Invalid action');
+            throw new DomainException('The action you attempted is not recognized by the system.');
+        }
+
+        if ($document->status_id === Status::DOC_REJECTED) {
+            throw new DomainException('This document has been rejected by the School Division Superintendent and is no longer actionable.');
         }
 
         // 2. Get assignment
         $assignment = $this->getDocumentAssignment($document, $user);
 
         // 3. Lazily create assignment ONLY if uploader and none exists
-        if (!$assignment && $document->uploaded_by === $user->id) {
+        if (!$assignment && ($document->uploaded_by === $user->id || in_array($user->getRoleAttribute(), ['admin', 'records']))) {
             $assignment = $this->createDocumentAssignment($user, $document);
         }
 
         if (!$assignment) {
-            throw new DomainException('No active assignment found');
+            throw new DomainException('You do not have an active assignment for this document.');
         }
 
 
@@ -119,28 +146,24 @@ class DocumentActionService
         if ($alreadyPerformed) {
             // Non-uploader: never allowed to repeat
             if ($user->id !== $document->uploaded_by) {
-                throw new DomainException("You have already {$action} this document.");
+                throw new DomainException("You have already performed the “{$action}” action on this document.");
             }
 
             // Uploader: only allowed to repeat specific actions
             if (! in_array($action, $repeatableActionsForUploader, true)) {
-                throw new DomainException("You have already {$action} this document.");
+                throw new DomainException("The “{$action}” action cannot be repeated for this document.");
             }
         }
 
 
         // 5. Prevent action on completed assignment
         if ($assignment->status_id === Status::DOC_ASSIGN_COMPLETED) {
-            throw new DomainException(
-                'You can no longer perform this action on the document.'
-            );
+            throw new DomainException('This assignment has been completed. No further actions can be performed.');
         }
 
         // 6. Prevent action on completed document and a completed draft
-        if ($document->status_id === Status::DOC_COMPLETED || $document->status_id === Status::DOC_ARCHIVED || $document->status_id === Status::DOC_DRAFT_APPROVED) {
-            throw new DomainException(
-                'You can no longer perform this action on the document.'
-            );
+        if ($document->status_id === Status::DOC_COMPLETED || $document->status_id === Status::DOC_ARCHIVED || $document->status_id === Status::DOC_DRAFT_FOR_ISSUANCE) {
+            throw new DomainException('This document has been finalized and cannot be modified or acted upon.');
         }
 
         // 7. Prevent premature completion
@@ -151,9 +174,8 @@ class DocumentActionService
                 Status::DOC_ASSIGN_DELAYED,
             ])
         ) {
-            throw new DomainException(
-                'You must acknowledge, approve, respond, review, or sign the document before marking it as completed.'
-            );
+            throw new DomainException('All required actions (acknowledge, approve, respond, review, or sign) must be completed before marking this assignment as completed.');
+
         }
 
         return $assignment;

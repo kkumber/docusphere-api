@@ -32,7 +32,7 @@ class StoreDocumentRequest extends FormRequest
             'category' => ['required', 'string', Rule::in(['advisory', 'endorsement', 'memorandum', 'unnumbered_memorandum'])],
             'originating_office' => ['required', 'string'],
             'request_type' => ['required', new Enum(RequestType::class)],
-            'due_date' => ['nullable', 'date'],
+            'due_date' => ['nullable', 'date', 'after_or_equal:today'],
             'file' => ['required', 'file', 'mimes:pdf', 'max:10240'],
         ];
     }

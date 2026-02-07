@@ -8,6 +8,7 @@ enum RequestType: string
     case FOR_REVIEW      = 'for_review';
     case FOR_RESPONSE    = 'for_response';
     case FOR_ACKNOWLEDGE = 'for_acknowledgement';
+    case FOR_ISSUANCE    = 'for_issuance';
 
     public function label(): string
     {
@@ -17,6 +18,7 @@ enum RequestType: string
             self::FOR_REVIEW      => 'For Review',
             self::FOR_RESPONSE    => 'For Response',
             self::FOR_ACKNOWLEDGE => 'For Acknowledgement',
+            self::FOR_ISSUANCE    => 'For Issuance',
         };
     }
 }

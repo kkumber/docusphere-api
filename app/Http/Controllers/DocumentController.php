@@ -25,19 +25,20 @@ class DocumentController extends Controller
 
 
     /**
-     * Unofficial document uploads meaning most likely unnumbered memos
+     * Unofficial document uploads meaning drafts with system generate tracking no. This applies if the uploader is non-records
      */
     public function store(StoreDocumentRequest $request, DocumentService $documentService)
     {
         $validated = $request->validated();
+        $documentCount = Document::all()->count();
 
         $user = auth()->user();
 
         $documentDetails = [
-            'tracking_no' => $validated['tracking_no'],
+            'tracking_no' => strtoupper('DRAFT-' . $validated['category'] . '-' . date('Y') . '-' . str_pad($documentCount + 1, 6, '0', STR_PAD_LEFT)),
             'title' => $validated['title'],
             'instructions' => $validated['instructions'] ?? null,
-            'category' => $validated['category'] ?? CategoryType::UNNUMBERED_MEMORANDUM->value, // force this as a unnumbered memo
+            'category' => $validated['category'], 
             'originating_office' => $validated['originating_office'],
             'request_type' => $validated['request_type'],
             'uploaded_by' => $user->id,
@@ -46,7 +47,7 @@ class DocumentController extends Controller
         ];
 
         $file = $validated['file'];
-        $folder = 'documents' . '/' . $validated['category'];
+        $folder = 'documents' . '/' . 'draft' . '/' . $validated['category'];
 
         $result = $documentService->saveDocumentWithFileUpload($documentDetails, $user->id, $folder, $file);
 
@@ -102,10 +103,24 @@ class DocumentController extends Controller
         return ApiResponse::success(data: $notCompletedAssignments);
     }
 
+    public function destroy(Document $document, CloudinaryService $cloudinaryService)
+    {
+        $this->authorize('delete', $document);
+
+        $documentPublicIds = $document->documentFiles()->pluck('public_id')->toArray();
+        $cloudinaryService->destroyFromCloudinary($documentPublicIds);
+
+        $document->delete();
+        return ApiResponse::success('Document deleted');
+    }
+
 
     public function downloadSigned(Document $document, Request $request, DocumentDownloadService $pdfService)
     {
         $this->authorize('download', $document);
+
+        $user = auth()->user();
+
         $cloudUrl = $request->input('cloud_pdf_url');
         $actions = $document->documentAssignments()->with('actions')->get()->pluck('actions')->flatten();
 
@@ -120,7 +135,8 @@ class DocumentController extends Controller
             $signatories,
             $actionLogs, 
             'DocuSphere DTS',
-            'official_signed.pdf'
+            'official_signed.pdf',
+            $user
         );
     }
 

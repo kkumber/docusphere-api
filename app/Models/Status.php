@@ -19,6 +19,7 @@ class Status extends Model
 
 
     // document_assignment
+    // NOTE: THE 5 ACTION STATES HERE ARE UNUSED. IF REMOVING MAKE SURE TO CHECK DOCUMENTACTIONCONTROLLER
     public const DOC_ASSIGN_PENDING       = 6;
     public const DOC_ASSIGN_ACKNOWLEDGED  = 7;
     public const DOC_ASSIGN_APPROVED      = 8;
@@ -39,8 +40,9 @@ class Status extends Model
     public const DOC_DRAFT_PENDING = 18;
     public const DOC_DRAFT_IN_REVIEW = 19;
     public const DOC_DRAFT_APPROVED = 20;
+    public const DOC_DRAFT_FOR_ISSUANCE = 21;
     
-
+    public const DOC_REJECTED = 22;
 
     protected $fillable = [
         'module',
@@ -55,6 +57,7 @@ class Status extends Model
         self::DOC_COMPLETED => 'Completed',
         self::DOC_DELAYED   => 'Delayed',
         self::DOC_RELEASED  => 'Released',
+        self::DOC_REJECTED  => 'Rejected',
 
         // assignment
         self::DOC_ASSIGN_PENDING      => 'Pending',
@@ -76,6 +79,7 @@ class Status extends Model
         self::DOC_DRAFT_PENDING   => 'Pending',
         self::DOC_DRAFT_IN_REVIEW => 'In Review',
         self::DOC_DRAFT_APPROVED  => 'Approved',
+        self::DOC_DRAFT_FOR_ISSUANCE => 'For Issuance',
     ];
 
     public static function label(int $statusId): string

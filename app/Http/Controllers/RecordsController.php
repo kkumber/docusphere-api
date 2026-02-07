@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\DelayedDocuments;
 use App\Helpers\ApiResponse;
 use App\Http\Requests\StoreDocumentRequest;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Models\Document;
+use App\Models\Notification;
 use App\Models\Status;
 use App\Services\CloudinaryService;
 use App\Services\DocumentService;
@@ -31,7 +33,7 @@ class RecordsController extends Controller
         $user = auth()->user();
 
         $documentDetails = [
-            'tracking_no' => $validated['tracking_no'],
+            'tracking_no' => strtoupper($validated['tracking_no']),
             'title' => $validated['title'],
             'instructions' => $validated['instructions'] ?? null,
             'category' => $validated['category'],
@@ -50,18 +52,7 @@ class RecordsController extends Controller
 
         return $apiResponse->success(data: $result);
     }
-
-    // Delete from database and from cloudinary
-    public function destroy(Document $document, CloudinaryService $cloudinaryService)
-    {
-        $this->authorize('delete', $document);
-
-        $documentPublicIds = $document->documentFiles()->pluck('public_id')->toArray();
-        $cloudinaryService->destroyFromCloudinary($documentPublicIds);
-
-        $document->delete();
-        return ApiResponse::success('Document deleted');
-    }
+    
 
     public function archive(Document $document)
     {

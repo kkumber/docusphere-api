@@ -33,7 +33,7 @@ class DatabaseSeeder extends Seeder
         $admin = User::create([
             'first_name' => 'Docusphere',
             'last_name' => 'Admin',
-            'email' => 'admin@example.com',
+            'email' => 'docusphere@admin.com',
             'password' => bcrypt('password'),
             'office' => 'Admin Office',
         ]);
@@ -52,6 +52,39 @@ class DatabaseSeeder extends Seeder
         $records->email_verified_at = now();
         $records->save();
         $records->assignRole('records');
+
+        // create demo accounts for other roles
+        $sds = User::create([
+            'first_name' => 'SDS',
+            'last_name' => 'User',
+            'email' => 'docusphere@sds.com',
+            'password' => bcrypt('password'),
+            'office' => 'SDS Office',
+            'email_verified_at' => now(),
+        ]);
+        $sds->assignRole('sds');
+
+        $chief = User::create([
+            'first_name' => 'Chief',
+            'last_name' => 'User',
+            'email' => 'docusphere@chief.com',
+            'password' => bcrypt('password'),
+            'office' => 'Chief Office',
+            'email_verified_at' => now(),
+        ]);
+        $chief->assignRole('chief');
+
+        $staff = User::create([
+            'first_name' => 'Staff',
+            'last_name' => 'User',
+            'email' => 'docusphere@staff.com',
+            'password' => bcrypt('password'),
+            'office' => 'Staff Office',
+            'email_verified_at' => now(),
+        ]);
+        $staff->assignRole('staff');
+        
+
 
 
         // $this->call([
