@@ -97,6 +97,7 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::apiResource('/users', AdminUserController::class);
     Route::patch('/users/{user}/activate', [AdminUserController::class, 'activateUser']);
     Route::patch('/users/{user}/deactivate', [AdminUserController::class, 'deactivateUser']);
+    Route::post('/users/bulk-register', [AdminUserController::class, 'bulkRegister']);
 });
 
 Route::middleware(['auth:sanctum', 'role:admin|records'])->group(function () {

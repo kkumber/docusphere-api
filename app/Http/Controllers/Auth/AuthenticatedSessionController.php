@@ -26,6 +26,10 @@ class AuthenticatedSessionController extends Controller
         $email = $request->input('email');
         $user = User::where('email', $email)->first();
 
+        if ($user->status == 0) {
+            return ApiResponse::error('User is deactivated. Contact an admin to activate your account.');
+        }
+
         return ApiResponse::success("Login Success", $user);
     }
 

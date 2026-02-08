@@ -5,8 +5,13 @@ namespace App\Http\Controllers;
 use App\Helpers\ApiResponse;
 use App\Http\Requests\Auth\UpdateUserRequest;
 use App\Models\User;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 
 class AdminUserController extends Controller
 {
@@ -65,6 +70,50 @@ class AdminUserController extends Controller
 
         $user->update(['status' => 1]);
         return ApiResponse::success('User activated', $user);
+    }
+
+    public function bulkRegister(Request $request)
+    {
+        $this->authorize('create', User::class);
+
+        $validated = $request->validate([
+            'users' => ['required', 'array', 'min:1'],
+            'users.*.first_name' => ['required', 'string'],
+            'users.*.last_name' => ['required', 'string'],
+            'users.*.email' => ['required', 'email', 'unique:users,email'],
+            'users.*.office' => ['required', 'string'],
+            'users.*.password' => ['required', 'string', 'min:8'],
+            'users.*.role' => ['required', 'string', Rule::in(['admin', 'records', 'sds', 'chief', 'staff'])],
+        ]);
+
+
+        DB::transaction(function () use ($validated) {
+
+            $createdUsers = [];
+
+            foreach ($validated['users'] as $userData) {
+                $newUser = User::create([
+                    'first_name' => $userData['first_name'],
+                    'last_name'  => $userData['last_name'],
+                    'email'      => $userData['email'],
+                    'office'     => $userData['office'],
+                    'password'   => Hash::make($userData['password']),
+                ]);
+
+                $newUser->assignRole($userData['role']);
+                $createdUsers[] = $newUser;
+            }
+
+            DB::afterCommit(function () use ($createdUsers) {
+                foreach ($createdUsers as $user) {
+                    event(new Registered($user));
+                }
+            });
+        });
+
+
+
+        return ApiResponse::success('Users created', $validated['users']);
     }
 
 }
