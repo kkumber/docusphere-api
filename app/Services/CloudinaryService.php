@@ -78,7 +78,7 @@ class CloudinaryService
         }
     }
 
-   public function generateSignedUrl(string $publicId, int $expiresInSeconds = 3600): string
+   public function generateSignedUrl(string $publicId, int $expiresInSeconds = 300): string
     {
         try {
             $cloudName = config('cloudinary.cloud_name');

@@ -39,61 +39,83 @@ class DocumentActionService
 
         // Transaction
         try {
-            DB::transaction(function () use ($document, $assignment, $user, $statusId, $action, $remarks) {
+            DB::transaction(function () use ($document, $assignment, $user, $action, $remarks) {
 
-                // Update assignment
-                if ($action === Actions::COMPLETED->value) {
-                    $assignment->update(['status_id' => Status::DOC_ASSIGN_COMPLETED]);
-                } else if (Str::startsWith($document->tracking_no, 'DRAFT-')) {
-                    $assignment->update(['status_id' => Status::DOC_DRAFT_IN_REVIEW]);
-                } else {
-                    $assignment->update(['status_id' => Status::DOC_PENDING]);
+                $IsSds   = $user->getRoleAttribute() === 'sds';
+                $isDraft = Str::startsWith($document->tracking_no, 'DRAFT-');
+
+                // ----------------------------------
+                // 1. Decide ASSIGNMENT status
+                // ----------------------------------
+                $assignmentStatus = Status::DOC_PENDING;
+
+                if (!$isDraft && $action === Actions::COMPLETED->value) {
+                    $assignmentStatus = Status::DOC_ASSIGN_COMPLETED;
                 }
 
-                // create action record
+                if ($isDraft && $action === Actions::COMPLETED->value) {
+                    $assignmentStatus = Status::DOC_ASSIGN_COMPLETED;
+                } else if ($isDraft) {
+                    $assignmentStatus = Status::DOC_DRAFT_IN_REVIEW;
+                }
+
+                // ----------------------------------
+                // 2. Decide DOCUMENT status (SDS only)
+                // ----------------------------------
+                $documentStatus = null;
+
+                if ($IsSds) {
+                    if ($isDraft && $action === Actions::APPROVED->value) {
+                        $documentStatus = Status::DOC_DRAFT_APPROVED;
+                    }
+                    elseif ($isDraft && $action === Actions::COMPLETED->value) {
+                        $documentStatus = Status::DOC_DRAFT_FOR_ISSUANCE;
+                    }
+                    elseif (!$isDraft && $action === Actions::COMPLETED->value) {
+                        $documentStatus = Status::DOC_COMPLETED;
+                    }
+                    elseif ($action === Actions::REJECTED->value) {
+                        $documentStatus = Status::DOC_REJECTED;
+                    }
+                }
+
+                // ----------------------------------
+                // 3. Apply updates
+                // ----------------------------------
+                $assignment->update([
+                    'status_id' => $assignmentStatus
+                ]);
+
+                if ($documentStatus) {
+                    $document->update([
+                        'status_id' => $documentStatus
+                    ]);
+                }
+
+                // ----------------------------------
+                // 4. Log action
+                // ----------------------------------
                 DocAssignmentAction::create([
                     'document_assignment_id' => $assignment->id,
-                    'action' => $action,
-                    'performed_by' => $user->id,
-                    'remarks' => $remarks ?? null
+                    'action'                 => $action,
+                    'performed_by'           => $user->id,
+                    'remarks'                => $remarks
                 ]);
-                
-                // Check if user is sds
-                $isSdsOrAbove = in_array($user->getRoleAttribute(), ['admin', 'records', 'sds']);
-                $IsSds = $user->getRoleAttribute() === 'sds';
 
-                // update for issuance if mark as completed
-                if ($document->status_id === Status::DOC_DRAFT_APPROVED && $action === Actions::COMPLETED->value && $IsSds) {
-                    $document->update([
-                        'status_id' => Status::DOC_DRAFT_FOR_ISSUANCE
-                    ]);
-                    event(new DocumentCompleted($document));
-                }
-                // if sds we create a new notification of completed document to send to all records and then we update doc status to completed
-                else if ($IsSds && $action === Actions::COMPLETED->value ) {
-                    $document->update([
-                        'status_id' => Status::DOC_COMPLETED
-                    ]);
-
+                // ----------------------------------
+                // 5. Fire events ONCE
+                // ----------------------------------
+                if (in_array($documentStatus, [
+                    Status::DOC_COMPLETED,
+                    Status::DOC_DRAFT_FOR_ISSUANCE
+                ])) {
                     event(new DocumentCompleted($document));
                 }
 
-                // ONLY SDS CAN REJECT
-                if ($IsSds && $action === Actions::REJECTED->value) {
-                    $document->update([
-                        'status_id' => Status::DOC_REJECTED
-                    ]);
-
+                if ($documentStatus === Status::DOC_REJECTED) {
                     event(new DocumentRejected($document));
                 }
 
-                // update document status if for drafts approval
-                if ($document->status_id === Status::DOC_DRAFT_IN_REVIEW && $action === Actions::APPROVED->value && $IsSds) {
-                    $document->update([
-                        'status_id' => Status::DOC_DRAFT_APPROVED
-                    ]);
-                }
-                
             });
 
             return ['success' => true, 'message' => 'Task ' . strtolower($action) . ' successfully'];
