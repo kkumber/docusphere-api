@@ -29,7 +29,7 @@ class RegisterRequest extends FormRequest
             'last_name' => ['required', 'string', 'max:255'],
             'office' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:'.User::class],
-            'role' => ['required', 'string', Rule::in(['records', 'sds', 'chief', 'staff'])],
+            'role' => ['required', 'string', Rule::in(['admin', 'records', 'sds', 'chief', 'staff'])],
             'password' => ['required', Rules\Password::defaults()],
         ];
     }
