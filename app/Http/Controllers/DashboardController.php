@@ -101,7 +101,8 @@ class DashboardController extends Controller
                         'title' => 'Pending Documents',
                         'value' =>
                             ($docStatsByStatus[Status::DOC_PENDING] ?? 0) +
-                            ($docStatsByStatus[Status::DOC_ASSIGN_PENDING] ?? 0),
+                            ($docStatsByStatus[Status::DOC_ASSIGN_PENDING] ?? 0) +
+                            ($docStatsByStatus[Status::DOC_DRAFT_FOR_ISSUANCE] ?? 0), 
                     ],
                     [
                         'title' => 'Delayed Documents',

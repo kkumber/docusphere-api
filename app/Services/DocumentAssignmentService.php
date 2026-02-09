@@ -9,12 +9,13 @@ use App\Models\Notification;
 use App\Models\Status;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class DocumentAssignmentService 
 {
     public function createDocumentAssignment(User $user, array $request)
     {
-
+        $now = now();
 
         $assignments = [];
         foreach ($request['assigned_to'] as $targetUser) {
@@ -26,22 +27,23 @@ class DocumentAssignmentService
                 'status_id' => Status::DOC_ASSIGN_PENDING,
                 'instructions' => $request['instructions'] ?? NULL,
                 'due_date' => $request['due_date'] ?? NULL,
-                'created_at'   => now(),
-                'updated_at'   => now(),
+                'created_at'   => $now,
+                'updated_at'   => $now,
             ];
         }
 
         
-        DB::transaction(function () use ($assignments, $request, $user) {
+        DB::transaction(function () use ($assignments, $request, $user, $now) {
 
             $document = Document::lockForUpdate()->findOrFail($request['document_id']);
 
             // check if document is already released or has an assignment
             $docHasAssignment = DocumentAssignment::where('document_id', $document->id)->where('assigned_to', '!=', $user->id)->exists();
 
+            $isDraft = Str::startsWith($document->tracking_no, 'DRAFT-');
             // update document status to released
             if (!$docHasAssignment) {
-                if ($document->status_id === Status::DOC_DRAFT_PENDING) {
+                if ($isDraft) {
                     $document->update([
                         'status_id' => Status::DOC_DRAFT_IN_REVIEW,
                     ]);
@@ -54,8 +56,14 @@ class DocumentAssignmentService
 
             DocumentAssignment::insert($assignments);
 
+            $assignmentModels = DocumentAssignment::with('document')
+                ->where('document_id', $request['document_id'])
+                ->whereIn('assigned_to', $request['assigned_to'])
+                ->where('created_at', $now)
+                ->get();
+
             // Call Notifyuser and TrackDocumentAssignment listeners
-            event(new DocumentAssigned($assignments));
+            event(new DocumentAssigned($assignmentModels));
 
         });
 

@@ -28,7 +28,7 @@ class NotifyUserOfAssignment
             $notifyUsers[] = [
                 'user_id' => $assignment['assigned_to'],
                 'document_id' => $assignment['document_id'],
-                'subject' => 'You have been assigned a document',
+                'subject' => "Document {$assignment->document->tracking_no} has been assigned to you",
                 'data' => json_encode([
                     'request_type' => $assignment['request_type'],
                     'assigned_by' => $assignment['assigned_by'],

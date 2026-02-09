@@ -15,7 +15,7 @@ use App\Http\Controllers\RecordsController;
 use App\Models\DocAssignmentAction;
 use App\Models\User;
 
-Route::middleware(['auth:sanctum'])->group(function () {
+Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // Get user info
     Route::get('/user', function (Request $request) {
         $user = $request->user();
@@ -93,13 +93,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 });
 
-Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
+Route::middleware(['auth:sanctum', 'role:admin', 'verified'])->group(function () {
     Route::apiResource('/users', AdminUserController::class);
     Route::patch('/users/{user}/activate', [AdminUserController::class, 'activateUser']);
     Route::patch('/users/{user}/deactivate', [AdminUserController::class, 'deactivateUser']);
+    Route::post('/users/bulk-register', [AdminUserController::class, 'bulkRegister']);
 });
 
-Route::middleware(['auth:sanctum', 'role:admin|records'])->group(function () {
+Route::middleware(['auth:sanctum', 'role:admin|records', 'verified'])->group(function () {
     Route::apiResource('/record/documents', RecordsController::class);
     Route::patch('/record/documents/{document}/archive', [RecordsController::class, 'archive']);
 });

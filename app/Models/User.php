@@ -77,11 +77,6 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(DocumentFile::class, 'uploaded_by');
     }
 
-    public function docResponseFiles()
-    {
-        return $this->hasMany(DocResponseFile::class, 'uploaded_by');
-    }
-
     public function documentTrackingSent()
     {
         return $this->hasMany(DocumentTracking::class, 'from_user');
@@ -92,15 +87,6 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(DocumentTracking::class, 'to_user');
     }
 
-    public function documentVersions()
-    {
-        return $this->hasMany(DocumentVersion::class, 'uploaded_by');
-    }
-
-    public function documentComments()
-    {
-        return $this->hasMany(DocumentComment::class, 'user_id');
-    }
 
     public function auditLogs()
     {

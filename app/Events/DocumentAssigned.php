@@ -12,6 +12,7 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Collection;
 
 class DocumentAssigned implements ShouldDispatchAfterCommit
 {
@@ -20,7 +21,7 @@ class DocumentAssigned implements ShouldDispatchAfterCommit
     /**
      * Create a new event instance.
      */
-    public function __construct(public array $assignments)
+    public function __construct(public Collection $assignments)
     {
         //
     }
