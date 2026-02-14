@@ -47,4 +47,4 @@ Schedule::call(function () {
     if ($extremelyDelayedAssignments->isNotEmpty()) {
         event(new DelayedAssigneeAssignment($extremelyDelayedAssignments));
     }
-})->daily();
+})->everyMinute();
