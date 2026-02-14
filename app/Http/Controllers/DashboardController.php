@@ -101,7 +101,6 @@ class DashboardController extends Controller
                         'title' => 'Pending Documents',
                         'value' =>
                             ($docStatsByStatus[Status::DOC_PENDING] ?? 0) +
-                            ($docStatsByStatus[Status::DOC_ASSIGN_PENDING] ?? 0) +
                             ($docStatsByStatus[Status::DOC_DRAFT_FOR_ISSUANCE] ?? 0), 
                     ],
                     [
@@ -126,7 +125,16 @@ class DashboardController extends Controller
          * =========================
          */
         $assignmentStats = DocumentAssignment::where('assigned_to', $user->id)
-            ->selectRaw('status_id, COUNT(*) as total')
+            ->whereHas('document', function ($query) {
+                $query->whereIn('status_id', [
+                    Status::DOC_PENDING,
+                    Status::DOC_RELEASED,
+                    Status::DOC_DRAFT_PENDING,
+                    Status::DOC_DRAFT_IN_REVIEW,
+                ]);
+            })
+            ->select('status_id')
+            ->selectRaw('COUNT(*) as total')
             ->groupBy('status_id')
             ->pluck('total', 'status_id');
 
