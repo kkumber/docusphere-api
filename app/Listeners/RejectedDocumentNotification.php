@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class RejectedDocumentNotification
 {
@@ -33,6 +34,7 @@ class RejectedDocumentNotification
         ->latest()
         ->first()
         ?->remarks;
+        $isDocumentDraft = Str::startsWith($event->document->tracking_no, 'DRAFT-');
 
         $notifyRecords = [];
 
@@ -51,8 +53,10 @@ class RejectedDocumentNotification
             ];
         }
 
-        DB::transaction(function () use ($notifyRecords, $event, $remarks) {
-            Notification::insert($notifyRecords);
+        DB::transaction(function () use ($notifyRecords, $event, $remarks, $isDocumentDraft) {
+            if (!$isDocumentDraft) {
+                Notification::insert($notifyRecords);
+            }
 
             // check if notification already exists
             if (Notification::where('user_id', $event->document->uploaded_by)->where('document_id', $event->document->id)->exists()) {
