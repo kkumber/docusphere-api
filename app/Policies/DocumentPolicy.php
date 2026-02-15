@@ -39,7 +39,7 @@ class DocumentPolicy
 
     public function reject(User $user, Document $document): bool
     {
-        return $user->hasAnyRole(['sds']);
+        return $user->hasAnyRole(['sds', 'records']);
     }
 
     /**
