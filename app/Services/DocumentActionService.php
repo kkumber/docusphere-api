@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Models\Document;
 use App\Models\DocumentFile;
 use App\Models\Status;
+use Cloudinary\Api\Provisioning\UserRole;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -144,8 +145,10 @@ class DocumentActionService
         // 2. Get assignment
         $assignment = $this->getDocumentAssignment($document, $user);
 
+        $userRole = $user->getRoleAttribute();
+
         // 3. Lazily create assignment ONLY if uploader and none exists
-        if (!$assignment && ($document->uploaded_by === $user->id || in_array($user->getRoleAttribute(), ['admin', 'records']))) {
+        if (!$assignment && ($document->uploaded_by === $user->id || in_array($userRole, ['admin', 'records']))) {
             $assignment = $this->createDocumentAssignment($user, $document);
         }
 
@@ -178,14 +181,16 @@ class DocumentActionService
         }
 
 
-        // 5. Prevent action on completed assignment
-        if ($assignment->status_id === Status::DOC_ASSIGN_COMPLETED) {
-            throw new DomainException('This assignment has been completed. No further actions can be performed.');
-        }
-
-        // 6. Prevent action on completed document and a completed draft
-        if ($document->status_id === Status::DOC_COMPLETED || $document->status_id === Status::DOC_ARCHIVED || $document->status_id === Status::DOC_DRAFT_FOR_ISSUANCE) {
-            throw new DomainException('This document has been finalized and cannot be modified or acted upon.');
+        
+        if ($userRole !== 'records') {
+            // 5. Prevent action on completed assignment
+            if ($assignment->status_id === Status::DOC_ASSIGN_COMPLETED) {
+                throw new DomainException('This assignment has been completed. No further actions can be performed.');
+            }
+            // 6. Prevent action on completed document and a completed draft
+            if (in_array($document->status_id, [Status::DOC_COMPLETED, Status::DOC_DRAFT_FOR_ISSUANCE, Status::DOC_ARCHIVED])) {
+                throw new DomainException('This document has been finalized and cannot be modified or acted upon.');
+            }
         }
 
         // 7. Prevent premature completion
@@ -241,13 +246,16 @@ class DocumentActionService
     }
 
     private function createDocumentAssignment(User $user, Document $document) {
+        $documentStatusId = $document->status_id;
+        $isDocumentCompleted = in_array($documentStatusId, [Status::DOC_COMPLETED, Status::DOC_ARCHIVED, Status::DOC_REJECTED, Status::DOC_DRAFT_FOR_ISSUANCE]);
+
         return DocumentAssignment::create([
             'document_id' => $document->id,
             'request_type' => $document->request_type,
             'assigned_to' => $user->id,
             'assigned_by' => $document->uploaded_by,
             'instructions' => $document->instructions,
-            'status_id' => Status::DOC_ASSIGN_PENDING,
+            'status_id' => $isDocumentCompleted ? Status::DOC_ASSIGN_COMPLETED : Status::DOC_ASSIGN_PENDING,
             'due_date'     => $document->due_date,
             'created_at'   => now(),
             'updated_at'   => now(),

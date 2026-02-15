@@ -12,10 +12,6 @@ use App\Events\DelayedDocuments;
 use App\Models\Document;
 
 
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
-
 Schedule::call(function () {
     // check for delayed docs and update
     $delayedDocs = Document::where('due_date', '<', now())->whereIn('status_id', [Status::DOC_PENDING, Status::DOC_RELEASED, Status::DOC_DRAFT_FOR_ISSUANCE])->pluck('id');
