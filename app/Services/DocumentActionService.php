@@ -246,6 +246,7 @@ class DocumentActionService
             'request_type' => $document->request_type,
             'assigned_to' => $user->id,
             'assigned_by' => $document->uploaded_by,
+            'instructions' => $document->instructions,
             'status_id' => Status::DOC_ASSIGN_PENDING,
             'due_date'     => $document->due_date,
             'created_at'   => now(),
