@@ -43,6 +43,7 @@ class DocumentActionService
             DB::transaction(function () use ($document, $assignment, $user, $action, $remarks) {
 
                 $IsSds   = $user->getRoleAttribute() === 'sds';
+                $isRecords = $user->getRoleAttribute() === 'records';
                 $isDraft = Str::startsWith($document->tracking_no, 'DRAFT-');
 
                 // ----------------------------------
@@ -64,6 +65,15 @@ class DocumentActionService
                 // 2. Decide DOCUMENT status (SDS only)
                 // ----------------------------------
                 $documentStatus = null;
+
+                if ($isRecords && $isDraft) {
+                    if ($action === Actions::APPROVED->value) {
+                        $documentStatus = Status::DOC_COMPLETED;
+                    }
+                    elseif ($action === Actions::REJECTED->value) {
+                        $documentStatus = Status::DOC_REJECTED;
+                    }
+                }
 
                 if ($IsSds) {
                     if ($isDraft && $action === Actions::APPROVED->value) {

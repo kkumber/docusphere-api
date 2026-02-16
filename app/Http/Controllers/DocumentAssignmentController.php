@@ -72,7 +72,7 @@ class DocumentAssignmentController extends Controller
 
             ]);
 
-        $documents = $assignments->concat($drafts)
+        $documents = $drafts->concat($assignments)
             ->unique('id')
             ->values();
 
