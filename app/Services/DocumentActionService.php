@@ -118,6 +118,7 @@ class DocumentActionService
                 // ----------------------------------
                 if (in_array($documentStatus, [
                     Status::DOC_COMPLETED,
+                    Status::DOC_DRAFT_APPROVED,
                     Status::DOC_DRAFT_FOR_ISSUANCE
                 ])) {
                     event(new DocumentCompleted($document));
