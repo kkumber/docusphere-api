@@ -34,7 +34,7 @@ class RecordsController extends Controller
 
         $documentDetails = [
             'tracking_no' => strtoupper($validated['tracking_no']),
-            'title' => $validated['title'],
+            'title' => strtoupper($validated['title']),
             'instructions' => $validated['instructions'] ?? null,
             'category' => $validated['category'],
             'originating_office' => $validated['originating_office'],

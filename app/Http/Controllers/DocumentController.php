@@ -30,12 +30,12 @@ class DocumentController extends Controller
     public function store(StoreDocumentRequest $request, DocumentService $documentService)
     {
         $validated = $request->validated();
-        $documentCount = Document::all()->count();
 
         $user = auth()->user();
+        $randomNumber = rand(1, 99999);
 
         $documentDetails = [
-            'tracking_no' => strtoupper('DRAFT-' . $validated['category'] . '-' . date('Y') . '-' . str_pad($documentCount + 1, 6, '0', STR_PAD_LEFT)),
+            'tracking_no' => strtoupper('DRAFT-' . $validated['category'] . '-' . date('Y') . '-' . str_pad($randomNumber + 1, 5, '0', STR_PAD_LEFT)),
             'title' => $validated['title'],
             'instructions' => $validated['instructions'] ?? null,
             'category' => $validated['category'], 

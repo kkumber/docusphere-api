@@ -150,7 +150,7 @@ class DocumentActionService
         }
 
         if ($document->status_id === Status::DOC_REJECTED) {
-            throw new DomainException('This document has been rejected by the School Division Superintendent and is no longer actionable.');
+            throw new DomainException('This document has been rejected and is no longer actionable.');
         }
 
         // 2. Get assignment
