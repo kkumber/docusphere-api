@@ -10,6 +10,7 @@ use App\Events\DelayedAssignments;
 use App\Events\DelayedAssigneeAssignment;
 use App\Events\DelayedDocuments;
 use App\Events\DelayedDraft;
+use App\Events\DocumentRetention;
 use App\Models\Document;
 
 
@@ -51,4 +52,14 @@ Schedule::call(function () {
     if ($extremelyDelayedAssignments->isNotEmpty()) {
         event(new DelayedAssigneeAssignment($extremelyDelayedAssignments));
     }
+
+    // notification to records if an archive is pass retention policy
+    $retentionPolicy = 5;
+    $documents = Document::where('status_id', Status::DOC_ARCHIVED)->where('updated_at', '<', now()->subYears($retentionPolicy))->pluck('id');
+
+    if ($documents->isNotEmpty()) {
+        event(new DocumentRetention($documents));
+    }
+
+
 })->everyMinute();

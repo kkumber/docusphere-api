@@ -129,15 +129,18 @@ class DashboardController extends Controller
                 $query->whereIn('status_id', [
                     Status::DOC_PENDING,
                     Status::DOC_RELEASED,
+                    Status::DOC_REJECTED,
+                    Status::DOC_COMPLETED,
+                    Status::DOC_ARCHIVED,
+                    
+                    Status::DOC_ASSIGN_COMPLETED,
+                    Status::DOC_ASSIGN_PENDING,
+                    status::DOC_ASSIGN_DELAYED,
+
                     Status::DOC_DRAFT_PENDING,
                     Status::DOC_DRAFT_IN_REVIEW,
                     Status::DOC_DRAFT_APPROVED,
                     Status::DOC_DRAFT_FOR_ISSUANCE,
-                    Status::DOC_DELAYED,
-                    Status::DOC_ASSIGN_PENDING,
-                    Status::DOC_ASSIGN_DELAYED,
-                    Status::DOC_ASSIGN_COMPLETED,
-                    Status::DOC_REJECTED
                 ]);
             })
             ->select('status_id')
@@ -170,7 +173,7 @@ class DashboardController extends Controller
                     ],
                     [
                         'title' => 'Completed Tasks',
-                        'value' => $assignmentStats[Status::DOC_ASSIGN_COMPLETED] ?? 0,
+                        'value' => ($assignmentStats[Status::DOC_ASSIGN_COMPLETED] ?? 0) + ($assignmentStats[Status::DOC_COMPLETED] ?? 0) + ($assignmentStats[Status::DOC_REJECTED] ?? 0) + ($assignmentStats[Status::DOC_ARCHIVED] ?? 0) + ($assignmentStats[Status::DOC_DRAFT_APPROVED] ?? 0) + ($assignmentStats[Status::DOC_DRAFT_FOR_ISSUANCE] ?? 0),
                     ],
                     [
                         'title' => 'Delayed Tasks',
