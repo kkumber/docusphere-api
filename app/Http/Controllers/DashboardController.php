@@ -131,6 +131,13 @@ class DashboardController extends Controller
                     Status::DOC_RELEASED,
                     Status::DOC_DRAFT_PENDING,
                     Status::DOC_DRAFT_IN_REVIEW,
+                    Status::DOC_DRAFT_APPROVED,
+                    Status::DOC_DRAFT_FOR_ISSUANCE,
+                    Status::DOC_DELAYED,
+                    Status::DOC_ASSIGN_PENDING,
+                    Status::DOC_ASSIGN_DELAYED,
+                    Status::DOC_ASSIGN_COMPLETED,
+                    Status::DOC_REJECTED
                 ]);
             })
             ->select('status_id')
@@ -152,6 +159,7 @@ class DashboardController extends Controller
          * SDS DASHBOARD
          * =========================
          */
+
         if ($user->hasRole('sds')) {
 
             $sdsData = [
