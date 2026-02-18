@@ -106,6 +106,16 @@ class DocumentController extends Controller
     public function destroy(Document $document, CloudinaryService $cloudinaryService)
     {
         $this->authorize('delete', $document);
+        $retentionPolicy = 5;
+        $documentStatus = $document->status_id;
+
+        if ($documentStatus === Status::DOC_ARCHIVED && $document->updated_at > now()->subYears($retentionPolicy)) {
+            return ApiResponse::error(message: 'Document has not passed the retention policy.');
+        }
+
+        if (!in_array($documentStatus, [Status::DOC_PENDING, Status::DOC_DRAFT_PENDING, Status::DOC_ARCHIVED])) {
+            return ApiResponse::error(message: 'Document cannot be deleted.');
+        }
 
         $documentPublicIds = $document->documentFiles()->pluck('public_id')->toArray();
         $cloudinaryService->destroyFromCloudinary($documentPublicIds);
