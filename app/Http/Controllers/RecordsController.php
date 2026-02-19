@@ -62,7 +62,7 @@ class RecordsController extends Controller
             return ApiResponse::error('Document already archived');
         }
 
-        if ($document->status_id !== Status::DOC_COMPLETED) {
+        if (!in_array($document->status_id, [Status::DOC_COMPLETED, Status::DOC_REJECTED])) {
             return ApiResponse::error('Document not completed');
         }
 

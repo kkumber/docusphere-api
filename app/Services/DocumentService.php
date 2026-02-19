@@ -32,8 +32,8 @@ class DocumentService
                 $documentSaved = $this->saveDocumentDetails($document);
 
                 if (!isset($documentSaved)) {
-                    throw new Exception('Failed to save document to database');
                     $this->cloudinaryService->destroyFromCloudinary([$uploadedFile]);
+                    throw new Exception('Failed to save document to database');
                 }
 
                 // save file details

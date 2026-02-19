@@ -44,9 +44,6 @@ class DocumentActionService
         try {
             DB::transaction(function () use ($document, $assignment, $user, $action, $remarks) {
 
-                $incompleteAssignments = $this->getIncompleteAssignments($document);
-
-
                 $IsSds   = $user->getRoleAttribute() === 'sds';
                 $isRecords = $user->getRoleAttribute() === 'records';
                 $isDraft = Str::startsWith($document->tracking_no, 'DRAFT-');
@@ -118,6 +115,8 @@ class DocumentActionService
                 // ----------------------------------
                 // 5. Fire events ONCE
                 // ----------------------------------
+                $incompleteAssignments = $this->getIncompleteAssignments($document);
+
                 if (in_array($documentStatus, [
                     Status::DOC_COMPLETED,
                     Status::DOC_DRAFT_APPROVED,
@@ -203,7 +202,7 @@ class DocumentActionService
         
         if ($userRole !== 'records') {
             // 5. Prevent action on completed assignment
-            if ($assignment->status_id === Status::DOC_ASSIGN_COMPLETED) {
+            if ($assignment->status_id === Status::DOC_ASSIGN_COMPLETED && $document->status_id !== Status::DOC_RETURNED) {
                 throw new DomainException('This assignment has been completed. No further actions can be performed.');
             }
             // 6. Prevent action on completed document and a completed draft

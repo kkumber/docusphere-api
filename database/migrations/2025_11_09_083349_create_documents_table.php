@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('title');
             $table->text('instructions')->nullable()->default(null);
             $table->string('category', 50); // Must be checked in request for validation
-            $table->string('originating_office', 50);
+            $table->string('originating_office', 255);
             $table->string('request_type', 50); // Must be checked in request for validation
             $table->foreignId('uploaded_by')->constrained('users')->onDelete('cascade');
             $table->foreignId('status_id')->constrained('statuses'); // Create a lookup table

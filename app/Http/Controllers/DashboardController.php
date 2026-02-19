@@ -99,9 +99,7 @@ class DashboardController extends Controller
                     ],
                     [
                         'title' => 'Pending Documents',
-                        'value' =>
-                            ($docStatsByStatus[Status::DOC_PENDING] ?? 0) +
-                            ($docStatsByStatus[Status::DOC_DRAFT_FOR_ISSUANCE] ?? 0), 
+                        'value' => $docStatsByStatus[Status::DOC_PENDING] ?? 0
                     ],
                     [
                         'title' => 'Delayed Documents',
@@ -140,7 +138,6 @@ class DashboardController extends Controller
                     Status::DOC_DRAFT_PENDING,
                     Status::DOC_DRAFT_IN_REVIEW,
                     Status::DOC_DRAFT_APPROVED,
-                    Status::DOC_DRAFT_FOR_ISSUANCE,
                 ]);
             })
             ->select('status_id')
@@ -173,7 +170,7 @@ class DashboardController extends Controller
                     ],
                     [
                         'title' => 'Completed Tasks',
-                        'value' => ($assignmentStats[Status::DOC_ASSIGN_COMPLETED] ?? 0) + ($assignmentStats[Status::DOC_COMPLETED] ?? 0) + ($assignmentStats[Status::DOC_REJECTED] ?? 0) + ($assignmentStats[Status::DOC_ARCHIVED] ?? 0) + ($assignmentStats[Status::DOC_DRAFT_APPROVED] ?? 0) + ($assignmentStats[Status::DOC_DRAFT_FOR_ISSUANCE] ?? 0),
+                        'value' => ($assignmentStats[Status::DOC_ASSIGN_COMPLETED] ?? 0) + ($assignmentStats[Status::DOC_COMPLETED] ?? 0) + ($assignmentStats[Status::DOC_REJECTED] ?? 0) + ($assignmentStats[Status::DOC_ARCHIVED] ?? 0) + ($assignmentStats[Status::DOC_DRAFT_APPROVED] ?? 0)
                     ],
                     [
                         'title' => 'Delayed Tasks',
