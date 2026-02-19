@@ -30,14 +30,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         $userRole = $user->getRoleAttribute();
 
         $usersByRole = [];
-        if ($userRole === 'admin' || $userRole === 'sds') {
-            $usersByRole = [
-                'records' => User::role('records')->where('email', 'docusphere@records.com')->get(['id', 'first_name', 'last_name', 'office']),
-                'sds' => User::role('sds')->where('id', '!=', $user->id)->orderBy('first_name')->get(['id', 'first_name', 'last_name', 'office']),
-                'chief' => User::role('chief')->where('id', '!=', $user->id)->orderBy('first_name')->get(['id', 'first_name', 'last_name', 'office']),
-                'staff' => User::role('staff')->where('id', '!=', $user->id)->orderBy('first_name')->get(['id', 'first_name', 'last_name', 'office']),
-            ];
-        } else if ($userRole === 'records') {
+        if ($userRole === 'records') {
             $usersByRole = [
                 'sds' => User::role('sds')->orderBy('first_name')->get(['id', 'first_name', 'last_name', 'office']),
             ];
@@ -72,6 +65,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::post('review', [DocumentActionController::class, 'review']);
         Route::post('respond', [DocumentActionController::class, 'respond']);
         Route::post('reject', [DocumentActionController::class, 'reject']);
+        Route::post('return', [DocumentActionController::class, 'returnDocument']);
     });
 
     // Document Details

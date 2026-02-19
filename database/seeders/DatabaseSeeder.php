@@ -36,6 +36,8 @@ class DatabaseSeeder extends Seeder
             'email' => 'docusphere@admin.com',
             'password' => bcrypt('password'),
             'office' => 'Admin Office',
+            'designation' => 'Admin',
+            'department' => null,
         ]);
         $admin->email_verified_at = now();
         $admin->save();
@@ -48,6 +50,8 @@ class DatabaseSeeder extends Seeder
             'email' => 'docusphere@records.com',
             'password' => bcrypt('password'),
             'office' => 'Records Office',
+            'designation' => 'Records Officer',
+            'department' => null,
         ]);
         $records->email_verified_at = now();
         $records->save();
@@ -60,6 +64,8 @@ class DatabaseSeeder extends Seeder
             'email' => 'docusphere@sds.com',
             'password' => bcrypt('password'),
             'office' => 'SDS Office',
+            'designation' => 'Schools Division Superintendent',
+            'department' => null,
             'email_verified_at' => now(),
         ]);
         $sds->assignRole('sds');
@@ -70,6 +76,8 @@ class DatabaseSeeder extends Seeder
             'email' => 'docusphere@chief.com',
             'password' => bcrypt('password'),
             'office' => 'Chief Office',
+            'designation' => 'Chief Education Program Supervisor',
+            'department' => 'Education Program',
             'email_verified_at' => now(),
         ]);
         $chief->assignRole('chief');
@@ -80,6 +88,8 @@ class DatabaseSeeder extends Seeder
             'email' => 'docusphere@staff.com',
             'password' => bcrypt('password'),
             'office' => 'Staff Office',
+            'designation' => 'Education Program Specialist',
+            'department' => 'Education Program',
             'email_verified_at' => now(),
         ]);
         $staff->assignRole('staff');

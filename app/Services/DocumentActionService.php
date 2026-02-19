@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\Actions;
 use App\Events\DocumentCompleted;
 use App\Events\DocumentRejected;
+use App\Events\DocumentReturned;
 use App\Helpers\ApiResponse;
 use App\Models\DocAssignmentAction;
 use App\Models\DocumentAssignment;
@@ -14,6 +15,7 @@ use App\Models\DocumentFile;
 use App\Models\Status;
 use Cloudinary\Api\Provisioning\UserRole;
 use DomainException;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -28,7 +30,7 @@ class DocumentActionService
     {}
 
 
-    public function performAction(Document $document, User $user, int $statusId, string $action, $file = null, $remarks = null)
+    public function performAction(Document $document, User $user, string $action, $file = null, $remarks = null)
     {
         // Check if user can perform actions
         $assignment = $this->canPerformAction($document, $user, $action);
@@ -41,6 +43,9 @@ class DocumentActionService
         // Transaction
         try {
             DB::transaction(function () use ($document, $assignment, $user, $action, $remarks) {
+
+                $incompleteAssignments = $this->getIncompleteAssignments($document);
+
 
                 $IsSds   = $user->getRoleAttribute() === 'sds';
                 $isRecords = $user->getRoleAttribute() === 'records';
@@ -70,17 +75,14 @@ class DocumentActionService
                     if ($action === Actions::APPROVED->value) {
                         $documentStatus = Status::DOC_COMPLETED;
                     }
-                    elseif ($action === Actions::REJECTED->value) {
-                        $documentStatus = Status::DOC_REJECTED;
+                    elseif ($action === Actions::RETURNED->value) {
+                        $documentStatus = Status::DOC_RETURNED;
                     }
                 }
 
                 if ($IsSds) {
                     if ($isDraft && $action === Actions::APPROVED->value) {
                         $documentStatus = Status::DOC_DRAFT_APPROVED;
-                    }
-                    elseif ($isDraft && $action === Actions::COMPLETED->value) {
-                        $documentStatus = Status::DOC_DRAFT_FOR_ISSUANCE;
                     }
                     elseif (!$isDraft && $action === Actions::COMPLETED->value) {
                         $documentStatus = Status::DOC_COMPLETED;
@@ -119,13 +121,19 @@ class DocumentActionService
                 if (in_array($documentStatus, [
                     Status::DOC_COMPLETED,
                     Status::DOC_DRAFT_APPROVED,
-                    Status::DOC_DRAFT_FOR_ISSUANCE
                 ])) {
                     event(new DocumentCompleted($document));
+                    $this->completeAllAssignments($incompleteAssignments);
                 }
 
                 if ($documentStatus === Status::DOC_REJECTED) {
                     event(new DocumentRejected($document));
+                    $this->completeAllAssignments($incompleteAssignments);
+                }
+                
+                if ($documentStatus === Status::DOC_RETURNED) {
+                    event(new DocumentReturned($document));
+                    $this->completeAllAssignments($incompleteAssignments);
                 }
 
             });
@@ -199,7 +207,7 @@ class DocumentActionService
                 throw new DomainException('This assignment has been completed. No further actions can be performed.');
             }
             // 6. Prevent action on completed document and a completed draft
-            if (in_array($document->status_id, [Status::DOC_COMPLETED, Status::DOC_DRAFT_FOR_ISSUANCE, Status::DOC_ARCHIVED])) {
+            if (in_array($document->status_id, [Status::DOC_COMPLETED, Status::DOC_DRAFT_APPROVED, Status::DOC_ARCHIVED])) {
                 throw new DomainException('This document has been finalized and cannot be modified or acted upon.');
             }
         }
@@ -258,7 +266,7 @@ class DocumentActionService
 
     private function createDocumentAssignment(User $user, Document $document) {
         $documentStatusId = $document->status_id;
-        $isDocumentCompleted = in_array($documentStatusId, [Status::DOC_COMPLETED, Status::DOC_ARCHIVED, Status::DOC_REJECTED, Status::DOC_DRAFT_FOR_ISSUANCE]);
+        $isDocumentCompleted = in_array($documentStatusId, [Status::DOC_COMPLETED, Status::DOC_ARCHIVED, Status::DOC_REJECTED, Status::DOC_DRAFT_APPROVED]);
 
         return DocumentAssignment::create([
             'document_id' => $document->id,
@@ -271,6 +279,23 @@ class DocumentActionService
             'created_at'   => now(),
             'updated_at'   => now(),
         ]);
+    }
+
+    private function getIncompleteAssignments(Document $document) 
+    {
+        return DocumentAssignment::where('document_id', $document->id)
+        ->where('status_id', '!=', Status::DOC_ASSIGN_COMPLETED)
+        ->pluck('id');
+    }
+
+    private function completeAllAssignments(Collection $assignmentsId)
+    {
+        if ($assignmentsId->isEmpty()) {
+            return;
+        }
+
+        return DocumentAssignment::whereIn('id', $assignmentsId)
+        ->update(['status_id' => Status::DOC_ASSIGN_COMPLETED]);
     }
 
 }

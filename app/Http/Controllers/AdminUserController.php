@@ -83,6 +83,8 @@ class AdminUserController extends Controller
             'users.*.email' => ['required', 'email', 'unique:users,email'],
             'users.*.office' => ['required', 'string'],
             'users.*.password' => ['required', 'string', 'min:8'],
+            'users.*.designation' => ['required', 'string', 'max:255'],
+            'users.*.department' => ['nullable', 'string', 'max:255'],
             'users.*.role' => ['required', 'string', Rule::in(['admin', 'records', 'sds', 'chief', 'staff'])],
         ]);
 
@@ -97,6 +99,7 @@ class AdminUserController extends Controller
                     'last_name'  => $userData['last_name'],
                     'email'      => $userData['email'],
                     'office'     => $userData['office'],
+                    'designation' => $userData['designation'],
                     'password'   => Hash::make($userData['password']),
                 ]);
 

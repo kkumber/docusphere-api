@@ -65,7 +65,7 @@ class DocumentActionController extends Controller
     {
         $user = auth()->user();
 
-        $response = $this->documentActionService->performAction($document, $user, Status::DOC_ASSIGN_ACKNOWLEDGED, Actions::ACKNOWLEDGED->value);
+        $response = $this->documentActionService->performAction($document, $user, Actions::ACKNOWLEDGED->value);
 
         return $this->isSuccessResponse($response);
     }
@@ -84,9 +84,9 @@ class DocumentActionController extends Controller
         $user = auth()->user();
 
         if ($document->status_id === Status::DOC_DRAFT_IN_REVIEW) {
-            $response = $this->documentActionService->performAction($document, $user, Status::DOC_DRAFT_APPROVED, Actions::APPROVED->value);
+            $response = $this->documentActionService->performAction($document, $user, Actions::APPROVED->value);
         } else {
-            $response = $this->documentActionService->performAction($document, $user, Status::DOC_ASSIGN_APPROVED, Actions::APPROVED->value);
+            $response = $this->documentActionService->performAction($document, $user, Actions::APPROVED->value);
         }
 
         return $this->isSuccessResponse($response);
@@ -106,7 +106,7 @@ class DocumentActionController extends Controller
             ], 403);
         }
 
-        $response = $this->documentActionService->performAction($document, $user, Status::DOC_ASSIGN_SIGNED, Actions::SIGNED->value);
+        $response = $this->documentActionService->performAction($document, $user, Actions::SIGNED->value);
 
         return $this->isSuccessResponse($response);
     }
@@ -120,7 +120,7 @@ class DocumentActionController extends Controller
         ]);
 
 
-        $response = $this->documentActionService->performAction($document, $user, Status::DOC_ASSIGN_REVIEWED, Actions::REVIEWED->value, remarks: $validated['remarks']);
+        $response = $this->documentActionService->performAction($document, $user,Actions::REVIEWED->value, remarks: $validated['remarks']);
 
         return $this->isSuccessResponse($response);
     }
@@ -132,7 +132,7 @@ class DocumentActionController extends Controller
         $validated = $request->validated();
 
 
-        $response = $this->documentActionService->performAction($document, $user, Status::DOC_ASSIGN_RESPONDED, Actions::RESPONDED->value, file: $validated['file'], remarks: $validated['remarks']);
+        $response = $this->documentActionService->performAction($document, $user, Actions::RESPONDED->value, file: $validated['file'], remarks: $validated['remarks']);
 
         return $this->isSuccessResponse($response);
     }
@@ -147,6 +147,20 @@ class DocumentActionController extends Controller
         ]);
 
         $response = $this->documentActionService->performAction($document, $user, Status::DOC_REJECTED, Actions::REJECTED->value, remarks: $validated['remarks']);
+
+        return $this->isSuccessResponse($response);
+    }
+
+    public function returnDocument(Document $document, Request $request)
+    {
+        $user = auth()->user();
+        $this->authorize('returnDocument', $document);
+
+        $validated = $request->validate([
+            'remarks' => ['required', 'string'],
+        ]);
+
+        $response = $this->documentActionService->performAction($document, $user, Actions::RETURNED->value, remarks: $validated['remarks']);
 
         return $this->isSuccessResponse($response);
     }
