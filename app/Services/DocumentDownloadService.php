@@ -24,12 +24,12 @@ class DocumentDownloadService
 
     // A4 Portrait: 210mm - 15mm left - 15mm right = 180mm printable width
     // All COL_* values must sum to 180.
-    private const COL_NAME        = 40;
-    private const COL_ROLE        = 28;
-    private const COL_OFFICE      = 22;
+    private const COL_NAME        = 30;
+    private const COL_ROLE        = 18;
+    private const COL_OFFICE      = 32;
     private const COL_DEPARTMENT  = 25;
     private const COL_DESIGNATION = 25;
-    private const COL_ACTION      = 18;
+    private const COL_ACTION      = 28;
     private const COL_DATETIME    = 22;
 
     private const LINE_HEIGHT     = 5;   // height of each text line inside a MultiCell
@@ -49,11 +49,11 @@ class DocumentDownloadService
         return $collection
             ->filter(fn($a) => $a->action === Actions::SIGNED->value)
             ->map(fn(DocAssignmentAction $a) => [
-                'name'        => optional($a->user)->first_name . ' ' . optional($a->user)->last_name ?? 'Unknown',
-                'role'        => optional($a->user)->role ?? 'Unknown',
-                'office'      => optional($a->user)->office ?? 'Unknown',
-                'department'  => optional($a->user)->department ?? 'Unknown',
-                'designation' => optional($a->user)->designation ?? 'Unknown',
+                'name'        => optional($a->user)->first_name . ' ' . optional($a->user)->last_name ?? 'N/A',
+                'role'        => optional($a->user)->role ?? 'N/A',
+                'office'      => optional($a->user)->office ?? 'N/A',
+                'department'  => optional($a->user)->department ?? 'N/A',
+                'designation' => optional($a->user)->designation ?? 'N/A',
                 'action'      => $a->action,
                 'datetime'    => optional($a->created_at)->format('Y-m-d H:i:s') ?? now()->toDateTimeString(),
             ])
@@ -72,11 +72,11 @@ class DocumentDownloadService
 
         return $collection
             ->map(fn(DocAssignmentAction $a) => [
-                'name'        => optional($a->user)->first_name . ' ' . optional($a->user)->last_name ?? 'Unknown',
-                'role'        => optional($a->user)->role ?? 'Unknown',
-                'office'      => optional($a->user)->office ?? 'Unknown',
-                'department'  => optional($a->user)->department ?? 'Unknown',
-                'designation' => optional($a->user)->designation ?? 'Unknown',
+                'name'        => optional($a->user)->first_name . ' ' . optional($a->user)->last_name ?? 'N/A',
+                'role'        => optional($a->user)->role ?? 'N/A',
+                'office'      => optional($a->user)->office ?? 'N/A',
+                'department'  => optional($a->user)->department ?? 'N/A',
+                'designation' => optional($a->user)->designation ?? 'N/A',
                 'action'      => $a->action,
                 'datetime'    => optional($a->created_at)->format('Y-m-d H:i:s') ?? now()->toDateTimeString(),
             ])
@@ -155,11 +155,11 @@ class DocumentDownloadService
         $pdf->Cell(0, 12, $options['title'], 0, 1, 'C');
         $pdf->SetLineWidth(0.5);
         $pdf->Line(self::LEFT_MARGIN, $pdf->GetY(), $pageWidth - self::LEFT_MARGIN, $pdf->GetY());
+        $pdf->SetLineWidth(0.2);
         $pdf->Ln(6);
 
         // Description
         $pdf->SetFont('helvetica', '', 9);
-        $pdf->SetTextColor(80, 80, 80);
         $pdf->MultiCell(
             0, 5,
             'This certification page provides a complete record of all authorized signatories who have reviewed and signed this document. The original document content remains unaltered and legally binding.',
@@ -182,7 +182,7 @@ class DocumentDownloadService
                 $sig['designation'],
                 $sig['action'],
                 $sig['datetime'],
-            ], $i % 2 === 0);
+            ]);
         }
 
         if (empty($signatories)) {
@@ -215,11 +215,12 @@ class DocumentDownloadService
         $pdf->Cell(0, 12, 'ACTION AUDIT TRAIL', 0, 1, 'C');
         $pdf->SetLineWidth(0.5);
         $pdf->Line(self::LEFT_MARGIN, $pdf->GetY(), $pageWidth - self::LEFT_MARGIN, $pdf->GetY());
+        $pdf->SetLineWidth(0.2);
         $pdf->Ln(6);
 
         // Description
         $pdf->SetFont('helvetica', '', 9);
-        $pdf->SetTextColor(80, 80, 80);
+        $pdf->SetTextColor(0, 0, 0);
         $pdf->MultiCell(
             0, 5,
             'This audit trail provides a comprehensive chronological record of all actions performed on this document, including views, downloads, signatures, and other interactions. This log serves as an official record for compliance and verification purposes.',
@@ -242,7 +243,7 @@ class DocumentDownloadService
                 $log['designation'],
                 $log['action'],
                 $log['datetime'],
-            ], $i % 2 === 0);
+            ]);
         }
 
         if (empty($actionLogs)) {
@@ -261,19 +262,18 @@ class DocumentDownloadService
      */
     private function drawTableHeader(Fpdi $pdf, string $nameLabel): void
     {
-        $pdf->SetFillColor(30, 64, 120);   // dark blue header
-        $pdf->SetTextColor(255, 255, 255); // white text
+        $pdf->SetLineWidth(0.2);
+        $pdf->SetFillColor(240, 240, 240);   // gray
         $pdf->SetFont('helvetica', 'B', self::FONT_HEADER);
 
         $pdf->Cell(self::COL_NAME,        self::HEADER_HEIGHT, $nameLabel,     1, 0, 'C', true);
-        $pdf->Cell(self::COL_ROLE,        self::HEADER_HEIGHT, 'Role/Position', 1, 0, 'C', true);
+        $pdf->Cell(self::COL_ROLE,        self::HEADER_HEIGHT, 'Role', 1, 0, 'C', true);
         $pdf->Cell(self::COL_OFFICE,      self::HEADER_HEIGHT, 'Office',        1, 0, 'C', true);
         $pdf->Cell(self::COL_DEPARTMENT,  self::HEADER_HEIGHT, 'Department',    1, 0, 'C', true);
         $pdf->Cell(self::COL_DESIGNATION, self::HEADER_HEIGHT, 'Designation',   1, 0, 'C', true);
         $pdf->Cell(self::COL_ACTION,      self::HEADER_HEIGHT, 'Action',        1, 0, 'C', true);
         $pdf->Cell(self::COL_DATETIME,    self::HEADER_HEIGHT, 'Date & Time',   1, 1, 'C', true);
 
-        $pdf->SetTextColor(0, 0, 0); // reset
     }
 
     /**
@@ -288,7 +288,7 @@ class DocumentDownloadService
      *  4. Draw a bounding border rectangle over each cell manually so all borders
      *     are the same height regardless of content.
      */
-    private function drawTableRow(Fpdi $pdf, array $row, bool $shaded): void
+    private function drawTableRow(Fpdi $pdf, array $row): void
     {
         $cols = [
             ['width' => self::COL_NAME,        'align' => 'L', 'text' => $row[0]],
@@ -339,20 +339,11 @@ class DocumentDownloadService
             $startY = $pdf->GetY();
         }
 
-        // Fill background
-        if ($shaded) {
-            $pdf->SetFillColor(248, 248, 248);
-        } else {
-            $pdf->SetFillColor(255, 255, 255);
-        }
-
+        
         // Draw each cell
         $curX = $startX;
         foreach ($cols as $col) {
             $pdf->SetXY($curX + $padding, $startY + $padding);
-
-            // Draw background rect
-            $pdf->Rect($curX, $startY, $col['width'], $rowHeight, 'F');
 
             // Draw text with MultiCell (no border — we draw border manually below)
             $pdf->MultiCell(
