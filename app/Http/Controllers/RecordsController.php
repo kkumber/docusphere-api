@@ -34,7 +34,7 @@ class RecordsController extends Controller
 
         $documentDetails = [
             'tracking_no' => strtoupper($validated['tracking_no']),
-            'title' => $validated['title'],
+            'title' => strtoupper($validated['title']),
             'instructions' => $validated['instructions'] ?? null,
             'category' => $validated['category'],
             'originating_office' => $validated['originating_office'],
@@ -62,7 +62,7 @@ class RecordsController extends Controller
             return ApiResponse::error('Document already archived');
         }
 
-        if ($document->status_id !== Status::DOC_COMPLETED) {
+        if (!in_array($document->status_id, [Status::DOC_COMPLETED, Status::DOC_REJECTED])) {
             return ApiResponse::error('Document not completed');
         }
 

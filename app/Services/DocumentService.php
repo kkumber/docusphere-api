@@ -10,6 +10,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class DocumentService
 {
@@ -31,6 +32,7 @@ class DocumentService
                 $documentSaved = $this->saveDocumentDetails($document);
 
                 if (!isset($documentSaved)) {
+                    $this->cloudinaryService->destroyFromCloudinary([$uploadedFile]);
                     throw new Exception('Failed to save document to database');
                 }
 
@@ -52,16 +54,32 @@ class DocumentService
                 'file' => $e->getFile(),
                 'line' => $e->getLine()
             ]);
-
             throw new \RuntimeException('Failed to save document');
         }
     }
 
     // Save document into document table
-    private function saveDocumentDetails(array $data): Document
+    private function saveDocumentDetails(array $data)
     {
-        return Document::create($data);
+        // create the document
+        $document = Document::create($data);
+
+        // if it's a draft, skip tracking number
+        if (Str::startsWith($data['tracking_no'], 'DRAFT-')) {
+            return $document;
+        }
+
+        // generate tracking number using the document ID
+        $trackingNo = $this->generateTrackingNo($data, $document->id);
+
+        //  update the document
+        $document->tracking_no = strtoupper($trackingNo);
+        $document->save(); // saves the change
+
+        // return the updated document instance
+        return $document;
     }
+
 
 
     /**
@@ -82,6 +100,31 @@ class DocumentService
             'file_size' => $size,
             'uploaded_by' => $metadata['user_id'],
         ]);
+    }
+
+    private function generateTrackingNo(array $data, int $id) 
+    {
+        $prefix = $this->generateFormatBasedOnCategory($data['category']);
+        $year = date('Y');
+        $title = $data['title'];
+
+        return "{$prefix} {$id}, S. {$year} {$title}";        
+    }
+
+    private function generateFormatBasedOnCategory(string $category)
+    {
+        switch(strtoupper($category)) {
+            case 'MEMORANDUM':
+                return 'DM NO.';
+            case 'UNNUMBERED_MEMORANDUM':
+                return 'UM-REF NO.';
+            case 'ADVISORY':
+                return 'DEPED MAKATI ADVISORY NO.';
+            case 'ENDORSEMENT':
+                return 'REF NO.';
+            default:
+                return null;
+        }
     }
 }
 

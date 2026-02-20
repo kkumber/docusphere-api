@@ -70,6 +70,11 @@ class DocumentPolicy
         return $document->uploaded_by === $user->id;
     }
 
+    public function returnDocument(User $user, Document $document): bool
+    {
+        return $user->hasAnyRole(['admin', 'records']);
+    }
+
     /**
      * Determine whether the user can restore the model.
      */

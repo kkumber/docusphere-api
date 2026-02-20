@@ -12,11 +12,35 @@ use App\Models\User;
 class DocumentDownloadService
 {
     /**
+     * A4 Portrait printable width = 210mm - 15mm (left) - 15mm (right) = 180mm
+     * Column widths must sum to exactly 180mm.
+     *
+     * Signatories table columns (180mm total):
+     *   Name: 45 | Role: 30 | Office: 20 | Department: 25 | Designation: 25 | Action: 15 | Date & Time: 20
+     *
+     * Action Logs table columns (180mm total):
+     *   Name: 45 | Role: 30 | Office: 20 | Department: 25 | Designation: 25 | Action: 15 | Date & Time: 20
+     */
+
+    // A4 Portrait: 210mm - 15mm left - 15mm right = 180mm printable width
+    // All COL_* values must sum to 180.
+    private const COL_NAME        = 40;
+    private const COL_ROLE        = 28;
+    private const COL_OFFICE      = 22;
+    private const COL_DEPARTMENT  = 25;
+    private const COL_DESIGNATION = 25;
+    private const COL_ACTION      = 18;
+    private const COL_DATETIME    = 22;
+
+    private const LINE_HEIGHT     = 5;   // height of each text line inside a MultiCell
+    private const HEADER_HEIGHT   = 10;
+    private const FONT_HEADER     = 8;
+    private const FONT_ROW        = 7;
+    private const LEFT_MARGIN     = 15;
+
+    /**
      * Build signatories from DocAssignmentAction collection.
      * Only include SIGNED actions.
-     *
-     * @param  \Illuminate\Support\Collection|array  $actions
-     * @return array
      */
     public function buildSignatoriesFromActions($actions): array
     {
@@ -25,10 +49,13 @@ class DocumentDownloadService
         return $collection
             ->filter(fn($a) => $a->action === Actions::SIGNED->value)
             ->map(fn(DocAssignmentAction $a) => [
-                'name' => optional($a->user)->first_name . ' ' . optional($a->user)->last_name ?? 'Unknown',
-                'role' => optional($a->user)->role ?? 'Unknown',
-                'action' => $a->action,
-                'datetime' => optional($a->created_at)->format('Y-m-d H:i:s') ?? now()->toDateTimeString(),
+                'name'        => optional($a->user)->first_name . ' ' . optional($a->user)->last_name ?? 'Unknown',
+                'role'        => optional($a->user)->role ?? 'Unknown',
+                'office'      => optional($a->user)->office ?? 'Unknown',
+                'department'  => optional($a->user)->department ?? 'Unknown',
+                'designation' => optional($a->user)->designation ?? 'Unknown',
+                'action'      => $a->action,
+                'datetime'    => optional($a->created_at)->format('Y-m-d H:i:s') ?? now()->toDateTimeString(),
             ])
             ->sortBy('datetime')
             ->values()
@@ -38,9 +65,6 @@ class DocumentDownloadService
     /**
      * Build all action logs from DocAssignmentAction collection.
      * Include ALL actions for audit trail.
-     *
-     * @param  \Illuminate\Support\Collection|array  $actions
-     * @return array
      */
     public function buildActionLogsFromActions($actions): array
     {
@@ -48,10 +72,13 @@ class DocumentDownloadService
 
         return $collection
             ->map(fn(DocAssignmentAction $a) => [
-                'name' => optional($a->user)->first_name . ' ' . optional($a->user)->last_name ?? 'Unknown',
-                'role' => optional($a->user)->role ?? 'Unknown',
-                'action' => $a->action,
-                'datetime' => optional($a->created_at)->format('Y-m-d H:i:s') ?? now()->toDateTimeString(),
+                'name'        => optional($a->user)->first_name . ' ' . optional($a->user)->last_name ?? 'Unknown',
+                'role'        => optional($a->user)->role ?? 'Unknown',
+                'office'      => optional($a->user)->office ?? 'Unknown',
+                'department'  => optional($a->user)->department ?? 'Unknown',
+                'designation' => optional($a->user)->designation ?? 'Unknown',
+                'action'      => $a->action,
+                'datetime'    => optional($a->created_at)->format('Y-m-d H:i:s') ?? now()->toDateTimeString(),
             ])
             ->sortBy('datetime')
             ->values()
@@ -60,22 +87,20 @@ class DocumentDownloadService
 
     /**
      * Generate PDF from Cloudinary URL and append SIGNED and ACTION LOG pages.
-     *
-     * @param  string  $cloudinaryUrl
-     * @param  array   $signatories  // output of buildSignatoriesFromActions (SIGNED only)
-     * @param  array   $actionLogs   // output of buildActionLogsFromActions (ALL actions)
-     * @param  string|null $watermarkText
-     * @param  array|null  $options
-     * @return string
      */
-    public function makeSignedPdfFromUrl(string $cloudinaryUrl, array $signatories, array $actionLogs = [], ?string $watermarkText = null, ?array $options = null, ?User $user = null): string
-    {
+    public function makeSignedPdfFromUrl(
+        string $cloudinaryUrl,
+        array $signatories,
+        array $actionLogs = [],
+        ?string $watermarkText = null,
+        ?array $options = null,
+        ?User $user = null
+    ): string {
         $options = array_merge([
             'include_footer' => true,
-            'title' => 'DIGITAL SIGNATORIES',
+            'title'          => 'DIGITAL SIGNATORIES',
         ], (array) $options);
 
-        // fetch PDF bytes
         $response = Http::timeout(30)->get($cloudinaryUrl);
         if (!$response->ok() || empty($response->body())) {
             throw new \RuntimeException('Failed to fetch PDF from URL: ' . $cloudinaryUrl);
@@ -89,22 +114,20 @@ class DocumentDownloadService
         $pdf->setPrintHeader(false);
         $pdf->setPrintFooter(false);
         $pdf->SetAutoPageBreak(false);
+        $pdf->SetMargins(self::LEFT_MARGIN, 15, self::LEFT_MARGIN);
 
-        $reader = StreamReader::createByString($pdfBytes);
-        $pageCount = $pdf->setSourceFile($reader);
+        $reader     = StreamReader::createByString($pdfBytes);
+        $pageCount  = $pdf->setSourceFile($reader);
 
-        // import existing pages
         for ($i = 1; $i <= $pageCount; $i++) {
             $tplId = $pdf->importPage($i);
-            $size = $pdf->getTemplateSize($tplId);
+            $size  = $pdf->getTemplateSize($tplId);
             $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
             $pdf->useTemplate($tplId);
         }
 
-        // === FIRST APPENDED PAGE: DIGITAL SIGNATORIES ===
         $this->appendSignatoriesPage($pdf, $signatories, $watermarkText, $options, $user);
 
-        // === SECOND APPENDED PAGE: ACTION AUDIT TRAIL ===
         if (!empty($actionLogs)) {
             $this->appendActionLogsPage($pdf, $actionLogs, $watermarkText, $options, $user);
         }
@@ -117,46 +140,56 @@ class DocumentDownloadService
      */
     private function appendSignatoriesPage(Fpdi $pdf, array $signatories, ?string $watermarkText, array $options, User $user): void
     {
-        $pdf->AddPage();
-        $pageWidth = $pdf->getPageWidth();
+        $pdf->AddPage('P', 'A4');
+        $pdf->SetMargins(self::LEFT_MARGIN, 15, self::LEFT_MARGIN);
+
+        $pageWidth  = $pdf->getPageWidth();
         $pageHeight = $pdf->getPageHeight();
 
-        // watermark
         $this->addWatermark($pdf, $watermarkText, $pageWidth, $pageHeight);
 
         $pdf->SetY(20);
 
-        // header with line
-        $pdf->SetFont('helvetica', 'B', 16);
+        // Page title
+        $pdf->SetFont('helvetica', 'B', 15);
         $pdf->Cell(0, 12, $options['title'], 0, 1, 'C');
         $pdf->SetLineWidth(0.5);
-        $pdf->Line(15, $pdf->GetY(), $pageWidth - 15, $pdf->GetY());
-        $pdf->Ln(8);
+        $pdf->Line(self::LEFT_MARGIN, $pdf->GetY(), $pageWidth - self::LEFT_MARGIN, $pdf->GetY());
+        $pdf->Ln(6);
 
-        // description
-        $pdf->SetFont('helvetica', '', 10);
-        $pdf->MultiCell(0, 5, 'This certification page provides a complete record of all authorized signatories who have reviewed and signed this document. The original document content remains unaltered and legally binding.', 0, 'L', false);
-        $pdf->Ln(10);
-
-        // table header with background
-        $pdf->SetFillColor(240, 240, 240);
-        $pdf->SetFont('helvetica', 'B', 10);
-        $pdf->Cell(65, 10, 'Signatory Name', 1, 0, 'C', true);
-        $pdf->Cell(45, 10, 'Role/Position', 1, 0, 'C', true);
-        $pdf->Cell(35, 10, 'Action', 1, 0, 'C', true);
-        $pdf->Cell(0, 10, 'Date & Time', 1, 1, 'C', true);
-
-        // table rows
+        // Description
         $pdf->SetFont('helvetica', '', 9);
-        $pdf->SetFillColor(255, 255, 255);
-        foreach ($signatories as $sig) {
-            $pdf->Cell(65, 9, mb_substr($sig['name'], 0, 60), 1, 0, 'L');
-            $pdf->Cell(45, 9, mb_substr($sig['role'], 0, 30), 1, 0, 'L');
-            $pdf->Cell(35, 9, mb_substr($sig['action'], 0, 20), 1, 0, 'C');
-            $pdf->Cell(0, 9, mb_substr($sig['datetime'], 0, 30), 1, 1, 'C');
+        $pdf->SetTextColor(80, 80, 80);
+        $pdf->MultiCell(
+            0, 5,
+            'This certification page provides a complete record of all authorized signatories who have reviewed and signed this document. The original document content remains unaltered and legally binding.',
+            0, 'L', false
+        );
+        $pdf->SetTextColor(0, 0, 0);
+        $pdf->Ln(6);
+
+        // Table header
+        $this->drawTableHeader($pdf, 'Signatory Name');
+
+        // Table rows
+        $pdf->SetFont('helvetica', '', self::FONT_ROW);
+        foreach ($signatories as $i => $sig) {
+            $this->drawTableRow($pdf, [
+                $sig['name'],
+                $sig['role'],
+                $sig['office'],
+                $sig['department'],
+                $sig['designation'],
+                $sig['action'],
+                $sig['datetime'],
+            ], $i % 2 === 0);
         }
 
-        // footer
+        if (empty($signatories)) {
+            $pdf->SetFillColor(255, 255, 255);
+            $pdf->Cell(0, self::LINE_HEIGHT * 2, 'No signatories found.', 1, 1, 'C');
+        }
+
         if ($options['include_footer']) {
             $this->addFooter($pdf, $pageWidth, $pageHeight, $user);
         }
@@ -167,49 +200,179 @@ class DocumentDownloadService
      */
     private function appendActionLogsPage(Fpdi $pdf, array $actionLogs, ?string $watermarkText, array $options, User $user): void
     {
-        $pdf->AddPage();
-        $pageWidth = $pdf->getPageWidth();
+        $pdf->AddPage('P', 'A4');
+        $pdf->SetMargins(self::LEFT_MARGIN, 15, self::LEFT_MARGIN);
+
+        $pageWidth  = $pdf->getPageWidth();
         $pageHeight = $pdf->getPageHeight();
 
-        // watermark
         $this->addWatermark($pdf, $watermarkText, $pageWidth, $pageHeight);
 
         $pdf->SetY(20);
 
-        // header with line
-        $pdf->SetFont('helvetica', 'B', 16);
+        // Page title
+        $pdf->SetFont('helvetica', 'B', 15);
         $pdf->Cell(0, 12, 'ACTION AUDIT TRAIL', 0, 1, 'C');
         $pdf->SetLineWidth(0.5);
-        $pdf->Line(15, $pdf->GetY(), $pageWidth - 15, $pdf->GetY());
-        $pdf->Ln(8);
+        $pdf->Line(self::LEFT_MARGIN, $pdf->GetY(), $pageWidth - self::LEFT_MARGIN, $pdf->GetY());
+        $pdf->Ln(6);
 
-        // description
-        $pdf->SetFont('helvetica', '', 10);
-        $pdf->MultiCell(0, 5, 'This audit trail provides a comprehensive chronological record of all actions performed on this document, including views, downloads, signatures, and other interactions. This log serves as an official record for compliance and verification purposes.', 0, 'L', false);
-        $pdf->Ln(10);
-
-        // table header with background
-        $pdf->SetFillColor(240, 240, 240);
-        $pdf->SetFont('helvetica', 'B', 10);
-        $pdf->Cell(65, 10, 'User Name', 1, 0, 'C', true);
-        $pdf->Cell(45, 10, 'Role/Position', 1, 0, 'C', true);
-        $pdf->Cell(35, 10, 'Action Type', 1, 0, 'C', true);
-        $pdf->Cell(0, 10, 'Date & Time', 1, 1, 'C', true);
-
-        // table rows
+        // Description
         $pdf->SetFont('helvetica', '', 9);
-        $pdf->SetFillColor(255, 255, 255);
-        foreach ($actionLogs as $log) {
-            $pdf->Cell(65, 9, mb_substr($log['name'], 0, 60), 1, 0, 'L');
-            $pdf->Cell(45, 9, mb_substr($log['role'], 0, 30), 1, 0, 'L');
-            $pdf->Cell(35, 9, mb_substr($log['action'], 0, 20), 1, 0, 'C');
-            $pdf->Cell(0, 9, mb_substr($log['datetime'], 0, 30), 1, 1, 'C');
+        $pdf->SetTextColor(80, 80, 80);
+        $pdf->MultiCell(
+            0, 5,
+            'This audit trail provides a comprehensive chronological record of all actions performed on this document, including views, downloads, signatures, and other interactions. This log serves as an official record for compliance and verification purposes.',
+            0, 'L', false
+        );
+        $pdf->SetTextColor(0, 0, 0);
+        $pdf->Ln(6);
+
+        // Table header
+        $this->drawTableHeader($pdf, 'User Name');
+
+        // Table rows
+        $pdf->SetFont('helvetica', '', self::FONT_ROW);
+        foreach ($actionLogs as $i => $log) {
+            $this->drawTableRow($pdf, [
+                $log['name'],
+                $log['role'],
+                $log['office'],
+                $log['department'],
+                $log['designation'],
+                $log['action'],
+                $log['datetime'],
+            ], $i % 2 === 0);
         }
 
-        // footer
+        if (empty($actionLogs)) {
+            $pdf->SetFillColor(255, 255, 255);
+            $pdf->Cell(0, self::LINE_HEIGHT * 2, 'No action logs found.', 1, 1, 'C');
+        }
+
         if ($options['include_footer']) {
             $this->addFooter($pdf, $pageWidth, $pageHeight, $user);
         }
+    }
+
+    /**
+     * Draw the shared table header row.
+     * Total = 45+30+20+25+25+15+20 = 180mm (matches A4 portrait printable width)
+     */
+    private function drawTableHeader(Fpdi $pdf, string $nameLabel): void
+    {
+        $pdf->SetFillColor(30, 64, 120);   // dark blue header
+        $pdf->SetTextColor(255, 255, 255); // white text
+        $pdf->SetFont('helvetica', 'B', self::FONT_HEADER);
+
+        $pdf->Cell(self::COL_NAME,        self::HEADER_HEIGHT, $nameLabel,     1, 0, 'C', true);
+        $pdf->Cell(self::COL_ROLE,        self::HEADER_HEIGHT, 'Role/Position', 1, 0, 'C', true);
+        $pdf->Cell(self::COL_OFFICE,      self::HEADER_HEIGHT, 'Office',        1, 0, 'C', true);
+        $pdf->Cell(self::COL_DEPARTMENT,  self::HEADER_HEIGHT, 'Department',    1, 0, 'C', true);
+        $pdf->Cell(self::COL_DESIGNATION, self::HEADER_HEIGHT, 'Designation',   1, 0, 'C', true);
+        $pdf->Cell(self::COL_ACTION,      self::HEADER_HEIGHT, 'Action',        1, 0, 'C', true);
+        $pdf->Cell(self::COL_DATETIME,    self::HEADER_HEIGHT, 'Date & Time',   1, 1, 'C', true);
+
+        $pdf->SetTextColor(0, 0, 0); // reset
+    }
+
+    /**
+     * Draw one table row using MultiCell so text wraps instead of overflowing.
+     *
+     * Strategy:
+     *  1. For each column, use GetStringWidth() to calculate how many lines the
+     *     text needs at the given column width.
+     *  2. Find the tallest column — that becomes the row height.
+     *  3. Draw each column at the saved X position using MultiCell with that
+     *     unified height, then restore Y so the next column starts at the same Y.
+     *  4. Draw a bounding border rectangle over each cell manually so all borders
+     *     are the same height regardless of content.
+     */
+    private function drawTableRow(Fpdi $pdf, array $row, bool $shaded): void
+    {
+        $cols = [
+            ['width' => self::COL_NAME,        'align' => 'L', 'text' => $row[0]],
+            ['width' => self::COL_ROLE,        'align' => 'L', 'text' => $row[1]],
+            ['width' => self::COL_OFFICE,      'align' => 'C', 'text' => $row[2]],
+            ['width' => self::COL_DEPARTMENT,  'align' => 'C', 'text' => $row[3]],
+            ['width' => self::COL_DESIGNATION, 'align' => 'C', 'text' => $row[4]],
+            ['width' => self::COL_ACTION,      'align' => 'C', 'text' => $row[5]],
+            ['width' => self::COL_DATETIME,    'align' => 'C', 'text' => $row[6]],
+        ];
+
+        $lineH   = self::LINE_HEIGHT;
+        $padding = 2; // mm padding inside cell
+
+        // Calculate the number of lines each column needs
+        $maxLines = 1;
+        foreach ($cols as &$col) {
+            $usableWidth = $col['width'] - ($padding * 2);
+            $words       = explode(' ', $col['text']);
+            $lines       = 1;
+            $lineText    = '';
+
+            foreach ($words as $word) {
+                $test = $lineText === '' ? $word : $lineText . ' ' . $word;
+                if ($pdf->GetStringWidth($test) > $usableWidth && $lineText !== '') {
+                    $lines++;
+                    $lineText = $word;
+                } else {
+                    $lineText = $test;
+                }
+            }
+
+            $col['lines'] = $lines;
+            $maxLines     = max($maxLines, $lines);
+        }
+        unset($col);
+
+        $rowHeight = $maxLines * $lineH + ($padding * 2);
+        $startY    = $pdf->GetY();
+        $startX    = self::LEFT_MARGIN;
+
+        // Check if row will overflow page; if so, add new page
+        $pageHeight  = $pdf->getPageHeight();
+        $footerSpace = 30;
+        if ($startY + $rowHeight > $pageHeight - $footerSpace) {
+            $pdf->AddPage('P', 'A4');
+            $pdf->SetMargins(self::LEFT_MARGIN, 15, self::LEFT_MARGIN);
+            $startY = $pdf->GetY();
+        }
+
+        // Fill background
+        if ($shaded) {
+            $pdf->SetFillColor(248, 248, 248);
+        } else {
+            $pdf->SetFillColor(255, 255, 255);
+        }
+
+        // Draw each cell
+        $curX = $startX;
+        foreach ($cols as $col) {
+            $pdf->SetXY($curX + $padding, $startY + $padding);
+
+            // Draw background rect
+            $pdf->Rect($curX, $startY, $col['width'], $rowHeight, 'F');
+
+            // Draw text with MultiCell (no border — we draw border manually below)
+            $pdf->MultiCell(
+                $col['width'] - ($padding * 2),
+                $lineH,
+                $col['text'],
+                0,
+                $col['align'],
+                false
+            );
+
+            // Draw border rect on top
+            $pdf->SetLineWidth(0.2);
+            $pdf->Rect($curX, $startY, $col['width'], $rowHeight, 'D');
+
+            $curX += $col['width'];
+        }
+
+        // Advance Y past this row
+        $pdf->SetXY(self::LEFT_MARGIN, $startY + $rowHeight);
     }
 
     /**
@@ -227,8 +390,8 @@ class DocumentDownloadService
         $pdf->SetFont('helvetica', 'B', 50);
         $pdf->SetTextColor(200, 200, 200);
         $pdf->StartTransform();
-        $pdf->Rotate(45, $pageWidth/2, $pageHeight/2);
-        $pdf->Text($pageWidth/2 - 60, $pageHeight/2 - 20, $watermarkText);
+        $pdf->Rotate(45, $pageWidth / 2, $pageHeight / 2);
+        $pdf->Text($pageWidth / 2 - 60, $pageHeight / 2 - 20, $watermarkText);
         $pdf->StopTransform();
         if (method_exists($pdf, 'setAlpha')) {
             $pdf->setAlpha(1);
@@ -243,16 +406,16 @@ class DocumentDownloadService
     {
         $pdf->SetY($pageHeight - 25);
         $pdf->SetLineWidth(0.3);
-        $pdf->Line(15, $pdf->GetY(), $pageWidth - 15, $pdf->GetY());
+        $pdf->Line(self::LEFT_MARGIN, $pdf->GetY(), $pageWidth - self::LEFT_MARGIN, $pdf->GetY());
         $pdf->Ln(3);
         $pdf->SetFont('helvetica', 'I', 8);
         $pdf->SetTextColor(100, 100, 100);
-        
-        $footerText = 'Digitally generated by DocuSphere DTS | ' 
-            . now()->format('F d, Y \a\t H:i:s T') 
-            . ' | Downloaded by: ' . $user->first_name . ' ' . $user->last_name 
+
+        $footerText = 'Digitally generated by DocuSphere DTS | '
+            . now()->format('F d, Y \a\t H:i:s T')
+            . ' | Downloaded by: ' . $user->first_name . ' ' . $user->last_name
             . ' (' . $user->role . ')';
-        
+
         $pdf->Cell(0, 5, $footerText, 0, 1, 'C');
         $pdf->SetTextColor(0, 0, 0);
     }
@@ -260,14 +423,20 @@ class DocumentDownloadService
     /**
      * Directly send the PDF to the browser as a download.
      */
-    public function downloadSignedPdfResponse(string $cloudinaryUrl, array $signatories, array $actionLogs = [], ?string $watermarkText = null, string $filename = 'signed_document.pdf', User $user)
-    {
+    public function downloadSignedPdfResponse(
+        string $cloudinaryUrl,
+        array $signatories,
+        array $actionLogs = [],
+        ?string $watermarkText = null,
+        string $filename = 'signed_document.pdf',
+        User $user = null
+    ) {
         $pdfBinary = $this->makeSignedPdfFromUrl($cloudinaryUrl, $signatories, $actionLogs, $watermarkText, user: $user);
 
         return response($pdfBinary, 200, [
-            'Content-Type' => 'application/pdf',
+            'Content-Type'        => 'application/pdf',
             'Content-Disposition' => 'attachment; filename="' . addslashes($filename) . '"',
-            'Content-Length' => strlen($pdfBinary),
+            'Content-Length'      => strlen($pdfBinary),
         ]);
     }
 }

@@ -99,9 +99,7 @@ class DashboardController extends Controller
                     ],
                     [
                         'title' => 'Pending Documents',
-                        'value' =>
-                            ($docStatsByStatus[Status::DOC_PENDING] ?? 0) +
-                            ($docStatsByStatus[Status::DOC_DRAFT_FOR_ISSUANCE] ?? 0), 
+                        'value' => $docStatsByStatus[Status::DOC_PENDING] ?? 0
                     ],
                     [
                         'title' => 'Delayed Documents',
@@ -129,8 +127,17 @@ class DashboardController extends Controller
                 $query->whereIn('status_id', [
                     Status::DOC_PENDING,
                     Status::DOC_RELEASED,
+                    Status::DOC_REJECTED,
+                    Status::DOC_COMPLETED,
+                    Status::DOC_ARCHIVED,
+                    
+                    Status::DOC_ASSIGN_COMPLETED,
+                    Status::DOC_ASSIGN_PENDING,
+                    status::DOC_ASSIGN_DELAYED,
+
                     Status::DOC_DRAFT_PENDING,
                     Status::DOC_DRAFT_IN_REVIEW,
+                    Status::DOC_DRAFT_APPROVED,
                 ]);
             })
             ->select('status_id')
@@ -152,6 +159,7 @@ class DashboardController extends Controller
          * SDS DASHBOARD
          * =========================
          */
+
         if ($user->hasRole('sds')) {
 
             $sdsData = [
@@ -162,7 +170,7 @@ class DashboardController extends Controller
                     ],
                     [
                         'title' => 'Completed Tasks',
-                        'value' => $assignmentStats[Status::DOC_ASSIGN_COMPLETED] ?? 0,
+                        'value' => ($assignmentStats[Status::DOC_ASSIGN_COMPLETED] ?? 0) + ($assignmentStats[Status::DOC_COMPLETED] ?? 0) + ($assignmentStats[Status::DOC_REJECTED] ?? 0) + ($assignmentStats[Status::DOC_ARCHIVED] ?? 0) + ($assignmentStats[Status::DOC_DRAFT_APPROVED] ?? 0)
                     ],
                     [
                         'title' => 'Delayed Tasks',

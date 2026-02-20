@@ -29,6 +29,9 @@ class DocAssignmentActionController extends Controller
                     'id' => $file->user->id,
                     'first_name' => $file->user->first_name,
                     'last_name' => $file->user->last_name,
+                    'office' => $file->user->office,
+                    'designation' => $file->user->designation,
+                    'department' => $file->user->department,
                     'email' => $file->user->email,
                     'role' => $file->user->roles->first()->name
                 ]
@@ -56,6 +59,9 @@ class DocAssignmentActionController extends Controller
                         'id' => $action->user->id,
                         'first_name' => $action->user->first_name,
                         'last_name' => $action->user->last_name,
+                        'office' => $action->user->office,
+                        'designation' => $action->user->designation,
+                        'department' => $action->user->department,
                         'email' => $action->user->email,
                         'office' => $action->user->office,
                         'role' => $action->user->roles->first()?->name,

@@ -9,22 +9,27 @@ use App\Models\Status;
 use App\Events\DelayedAssignments;
 use App\Events\DelayedAssigneeAssignment;
 use App\Events\DelayedDocuments;
+use App\Events\DelayedDraft;
+use App\Events\DocumentRetention;
 use App\Models\Document;
 
 
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
-
 Schedule::call(function () {
-    // check for delayed docs and update
-    $delayedDocs = Document::where('due_date', '<', now())->whereIn('status_id', [Status::DOC_PENDING, Status::DOC_RELEASED, Status::DOC_DRAFT_FOR_ISSUANCE])->pluck('id');
+    // check for delayed docs and update this is for records
+    $delayedDocs = Document::where('due_date', '<', now())->whereIn('status_id', [Status::DOC_PENDING, Status::DOC_DRAFT_PENDING, Status::DOC_RELEASED, Status::DOC_DRAFT_FOR_ISSUANCE])->pluck('id');
 
     Document::whereIn('id', $delayedDocs)->update(['status_id' => Status::DOC_DELAYED]);
 
     // notify for delayed docs
     if ($delayedDocs->isNotEmpty()){
         event(new DelayedDocuments($delayedDocs));
+    }
+
+    // check for delayed drafts
+    $delayedDrafts = Document::where('due_date', '<', now())->whereIn('status_id', [Status::DOC_DRAFT_IN_REVIEW, Status::DOC_DRAFT_APPROVED])->pluck('id');
+
+    if ($delayedDrafts->isNotEmpty()){
+        event(new DelayedDraft($delayedDrafts));
     }
 
     // Pending → Delayed
@@ -47,4 +52,14 @@ Schedule::call(function () {
     if ($extremelyDelayedAssignments->isNotEmpty()) {
         event(new DelayedAssigneeAssignment($extremelyDelayedAssignments));
     }
+
+    // notification to records if an archive is pass retention policy
+    $retentionPolicy = 5;
+    $documents = Document::where('status_id', Status::DOC_ARCHIVED)->where('updated_at', '<', now()->subYears($retentionPolicy))->pluck('id');
+
+    if ($documents->isNotEmpty()) {
+        event(new DocumentRetention($documents));
+    }
+
+
 })->everyMinute();

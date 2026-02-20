@@ -30,6 +30,10 @@ class AuthenticatedSessionController extends Controller
             return ApiResponse::error('User is deactivated. Contact an admin to activate your account.');
         }
 
+        if ($user->email_verified_at == null) {
+            return ApiResponse::error('Email is not verified. Please contact admin to verify your email.');
+        }
+
         return ApiResponse::success("Login Success", $user);
     }
 

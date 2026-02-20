@@ -11,6 +11,7 @@ enum Actions: string
     case SIGNED = 'Signed';
     case RESPONDED = 'Responded';
     case COMPLETED = 'Completed';
+    case RETURNED = 'Returned';
 }
 
 ?>
