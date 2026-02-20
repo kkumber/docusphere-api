@@ -27,6 +27,8 @@ class UpdateUserRequest extends FormRequest
             'first_name' => ['sometimes', 'required', 'string', 'max:255'],
             'last_name' => ['sometimes', 'required', 'string', 'max:255'],
             'office' => ['sometimes', 'required', 'string', 'max:255'],
+            'department' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'designation' => ['required', 'string', 'max:255'],
             'email' => ['sometimes', 'required', 'string', 'email', 'max:255'],
             'role' => ['sometimes', 'required', 'string', Rule::in(['records', 'sds', 'chief', 'staff'])],
         ];
