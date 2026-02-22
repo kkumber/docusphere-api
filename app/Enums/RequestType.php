@@ -22,22 +22,17 @@ enum RequestType: string
         };
     }
 
-    public static function requiredActions($requestType)
+    public static function requiredActions(string $requestType): array
     {
-        switch ($requestType) {
-            case self::FOR_SIGNATURE:
-                return [Actions::SIGNED->value];
-            case self::FOR_APPROVAL:
-                return [Actions::APPROVED->value, Actions::REJECTED->value, Actions::REVIEWED->value];
-            case self::FOR_REVIEW:
-                return [Actions::REVIEWED->value];
-            case self::FOR_RESPONSE:
-                return [Actions::RESPONDED->value];
-            case self::FOR_ACKNOWLEDGE:
-                return [Actions::ACKNOWLEDGED->value];
-            case self::FOR_ISSUANCE:
-                return [Actions::APPROVED->value, Actions::REJECTED->value];
-        }
+        return match ($requestType) {
+            self::FOR_SIGNATURE->value    => [Actions::SIGNED->value],
+            self::FOR_APPROVAL->value     => [Actions::APPROVED->value, Actions::REJECTED->value, Actions::REVIEWED->value],
+            self::FOR_REVIEW->value       => [Actions::REVIEWED->value],
+            self::FOR_RESPONSE->value     => [Actions::RESPONDED->value],
+            self::FOR_ACKNOWLEDGE->value  => [Actions::ACKNOWLEDGED->value],
+            self::FOR_ISSUANCE->value     => [Actions::APPROVED->value, Actions::REJECTED->value],
+            default => [], 
+        };
     }
 }
 

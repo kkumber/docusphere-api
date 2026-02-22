@@ -212,14 +212,17 @@ class DocumentActionService
             }
         }
 
-        // 7. Prevent premature completion
+        // 7. Prevent premature completion based on request type
         if ($action === Actions::COMPLETED->value) {
 
             $isRequiredActionDone = $this->checkRequiredActionForAssignment($assignment, $user);
-            $requiredActions = join(', ', RequestType::requiredActions($assignment->request_type));
+            $requestType = $assignment->request_type;
+            $requiredActions = join(', ', RequestType::requiredActions($requestType));
 
-            if (!$isRequiredActionDone) {
-                throw new DomainException("The required action must be completed before marking this assignment as completed. Required Actions: {$requiredActions}");
+            if ($isRequiredActionDone->isEmpty()) {
+                throw new DomainException(
+                    "Unable to complete this assignment. For '{$requestType}' documents, any of the following action(s) must be performed first: {$requiredActions}."
+                );
             }
         }
 
@@ -297,14 +300,14 @@ class DocumentActionService
         ->update(['status_id' => Status::DOC_ASSIGN_COMPLETED]);
     }
 
-    private function checkRequiredActionForAssignment($assignment, $user)
+    private function checkRequiredActionForAssignment($assignment, $user): Collection
     {
         $actionsDoneByUser = $this->checkActionsDoneByUser($assignment->id, $user->id);
         $requiredActions = RequestType::requiredActions($assignment->request_type);
 
-        Log::info('Actions done by user: ', $actionsDoneByUser);
+        Log::info("Actions Done By User: {$actionsDoneByUser}");
 
-        return in_array($actionsDoneByUser, $requiredActions);
+        return $actionsDoneByUser->intersect($requiredActions);
     }
 
     private function checkActionsDoneByUser($assignmentId, $userId)
