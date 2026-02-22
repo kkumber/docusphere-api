@@ -21,6 +21,24 @@ enum RequestType: string
             self::FOR_ISSUANCE    => 'For Issuance',
         };
     }
+
+    public static function requiredActions($requestType)
+    {
+        switch ($requestType) {
+            case self::FOR_SIGNATURE:
+                return [Actions::SIGNED->value];
+            case self::FOR_APPROVAL:
+                return [Actions::APPROVED->value, Actions::REJECTED->value, Actions::REVIEWED->value];
+            case self::FOR_REVIEW:
+                return [Actions::REVIEWED->value];
+            case self::FOR_RESPONSE:
+                return [Actions::RESPONDED->value];
+            case self::FOR_ACKNOWLEDGE:
+                return [Actions::ACKNOWLEDGED->value];
+            case self::FOR_ISSUANCE:
+                return [Actions::APPROVED->value, Actions::REJECTED->value];
+        }
+    }
 }
 
 

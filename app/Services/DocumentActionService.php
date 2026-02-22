@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\Actions;
+use App\Enums\RequestType;
 use App\Events\DocumentCompleted;
 use App\Events\DocumentRejected;
 use App\Events\DocumentReturned;
@@ -51,7 +52,7 @@ class DocumentActionService
                 // ----------------------------------
                 // 1. Decide ASSIGNMENT status
                 // ----------------------------------
-                $assignmentStatus = Status::DOC_PENDING;
+                $assignmentStatus = Status::DOC_ASSIGN_PENDING;
 
                 if (!$isDraft && $action === Actions::COMPLETED->value) {
                     $assignmentStatus = Status::DOC_ASSIGN_COMPLETED;
@@ -64,7 +65,7 @@ class DocumentActionService
                 }
 
                 // ----------------------------------
-                // 2. Decide DOCUMENT status (SDS only)
+                // 2. Decide DOCUMENT status
                 // ----------------------------------
                 $documentStatus = null;
 
@@ -212,15 +213,14 @@ class DocumentActionService
         }
 
         // 7. Prevent premature completion
-        if (
-            $action === Actions::COMPLETED->value &&
-            in_array($assignment->status_id, [
-                Status::DOC_ASSIGN_PENDING,
-                Status::DOC_ASSIGN_DELAYED,
-            ])
-        ) {
-            throw new DomainException('All required actions (acknowledge, approve, respond, review, or sign) must be completed before marking this assignment as completed.');
+        if ($action === Actions::COMPLETED->value) {
 
+            $isRequiredActionDone = $this->checkRequiredActionForAssignment($assignment, $user);
+            $requiredActions = join(', ', RequestType::requiredActions($assignment->request_type));
+
+            if (!$isRequiredActionDone) {
+                throw new DomainException("The required action must be completed before marking this assignment as completed. Required Actions: {$requiredActions}");
+            }
         }
 
         return $assignment;
@@ -297,6 +297,22 @@ class DocumentActionService
         ->update(['status_id' => Status::DOC_ASSIGN_COMPLETED]);
     }
 
+    private function checkRequiredActionForAssignment($assignment, $user)
+    {
+        $actionsDoneByUser = $this->checkActionsDoneByUser($assignment->id, $user->id);
+        $requiredActions = RequestType::requiredActions($assignment->request_type);
+
+        Log::info('Actions done by user: ', $actionsDoneByUser);
+
+        return in_array($actionsDoneByUser, $requiredActions);
+    }
+
+    private function checkActionsDoneByUser($assignmentId, $userId)
+    {
+        return DocAssignmentAction::where('document_assignment_id', $assignmentId)
+        ->where('performed_by', $userId)
+        ->pluck('action');
+    }
 }
 
 
