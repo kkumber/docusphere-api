@@ -81,9 +81,9 @@ class AdminUserController extends Controller
             'users.*.first_name' => ['required', 'string'],
             'users.*.last_name' => ['required', 'string'],
             'users.*.email' => ['required', 'email', 'unique:users,email'],
-            'users.*.office' => ['required', 'string'],
+            'users.*.office' => ['nullable', 'string'],
             'users.*.password' => ['required', 'string', 'min:8'],
-            'users.*.designation' => ['required', 'string', 'max:255'],
+            'users.*.designation' => ['nullable', 'string', 'max:255'],
             'users.*.department' => ['nullable', 'string', 'max:255'],
             'users.*.role' => ['required', 'string', Rule::in(['admin', 'records', 'sds', 'chief', 'staff'])],
         ]);
