@@ -99,7 +99,7 @@ class DashboardController extends Controller
                     ],
                     [
                         'title' => 'Pending Documents',
-                        'value' => $docStatsByStatus[Status::DOC_PENDING] ?? 0
+                        'value' => ($docStatsByStatus[Status::DOC_PENDING] ?? 0) + ($docStatsByStatus[Status::DOC_DRAFT_APPROVED] ?? 0),
                     ],
                     [
                         'title' => 'Delayed Documents',
@@ -178,7 +178,7 @@ class DashboardController extends Controller
                     ],
                     [
                         'title' => 'Pending Tasks',
-                        'value' => $assignmentStats[Status::DOC_ASSIGN_PENDING] ?? 0,
+                        'value' => ($assignmentStats[Status::DOC_ASSIGN_PENDING] ?? 0) + ($assignmentStats[Status::DOC_DRAFT_PENDING] ?? 0) + ($assignmentStats[Status::DOC_DRAFT_IN_REVIEW] ?? 0),
                     ],
                 ],
                 'area_chart' => [
@@ -207,7 +207,7 @@ class DashboardController extends Controller
                     ],
                     [
                         'title' => 'Pending Documents',
-                        'value' => $assignmentStats[Status::DOC_ASSIGN_PENDING] ?? 0,
+                        'value' => ($assignmentStats[Status::DOC_ASSIGN_PENDING] ?? 0) + ($assignmentStats[Status::DOC_DRAFT_PENDING] ?? 0) + ($assignmentStats[Status::DOC_DRAFT_IN_REVIEW] ?? 0),
                     ],
                     [
                         'title' => 'Routed Documents',
