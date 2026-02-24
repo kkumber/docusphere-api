@@ -52,6 +52,7 @@ class DocumentActionController extends Controller
                 'uploaded_by' => $document->user->first_name . ' ' . $document->user->last_name . ' - ' . $document->user->designation,
                 'created_at' => $document->created_at,
                 'updated_at' => $document->updated_at,
+                'instructions' => $document->instructions,
             ],
             'assignment' => $assignment ? [
                 'assigned_by' => $assignment->assigner->first_name . ' ' . $assignment->assigner->last_name . ' - ' . $assignment->assigner->designation,

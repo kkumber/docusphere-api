@@ -98,9 +98,9 @@ class AdminUserController extends Controller
                     'first_name' => $userData['first_name'],
                     'last_name'  => $userData['last_name'],
                     'email'      => $userData['email'],
-                    'office'     => $userData['office'],
-                    'department' => $userData['department'],
-                    'designation' => $userData['designation'],
+                    'office'     => $userData['office'] ?? null,
+                    'department' => $userData['department'] ?? null,
+                    'designation' => $userData['designation'] ?? null,
                     'password'   => Hash::make($userData['password']),
                 ]);
 

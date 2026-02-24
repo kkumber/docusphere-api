@@ -12,8 +12,10 @@ use App\Models\DocumentAssignment;
 use App\Models\Status;
 use App\Models\User;
 use App\Services\DocumentAssignmentService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 class DocumentAssignmentController extends Controller
@@ -97,6 +99,16 @@ class DocumentAssignmentController extends Controller
         ->where('id', $validated['document_id'])
         ->exists();
 
+        $documentOverallDueDate = Document::where('id', $validated['document_id'])->value('due_date') ?? null;
+        $assignmentDueDate = $validated['due_date'] ?? null;
+
+        if ($documentOverallDueDate) {
+            $formattedDueDate = Carbon::parse($documentOverallDueDate)->format('M j, Y');
+            if ($assignmentDueDate > $documentOverallDueDate) {
+                return ApiResponse::error(message: "Assignment due date cannot be later than the document due date ({$formattedDueDate}).");
+            }
+        }
+
         foreach ($targetUsers as $targetUser) {
 
             $this->authorize('assign', [DocumentAssignment::class, $targetUser]);
@@ -108,7 +120,7 @@ class DocumentAssignmentController extends Controller
             // Check if an assignment already exists for this user and is pending
             $existingAssignment = $documentAssignments->first(function($assignment) use ($targetUser, $validated) {
                 return $assignment->assignee->id === $targetUser->id
-                    && $assignment->status->id === Status::DOC_ASSIGN_PENDING
+                    && $assignment->status->id !== Status::DOC_ASSIGN_COMPLETED
                     && $assignment->document->id === $validated['document_id'];
             });
 
