@@ -56,6 +56,7 @@ class DocumentActionController extends Controller
             ],
             'assignment' => $assignment ? [
                 'assigned_by' => $assignment->assigner->first_name . ' ' . $assignment->assigner->last_name . ' - ' . $assignment->assigner->designation,
+                'office' => $assignment->assigner->office,
                 'request_type' => $assignment->request_type,
                 'due_date' => $assignment->due_date,
                 'instructions' => $assignment->instructions,
