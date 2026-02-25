@@ -27,7 +27,7 @@ class RegisterRequest extends FormRequest
         return [
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
-            'office' => ['nullable', 'string', 'max:255'],
+            'office' => ['required', 'string', 'max:255'],
             'designation' => ['nullable', 'string', 'max:255'],
             'department' => ['nullable', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:'.User::class],

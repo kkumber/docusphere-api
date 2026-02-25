@@ -34,6 +34,10 @@ class AuthenticatedSessionController extends Controller
             return ApiResponse::error('Email is not verified. Please contact admin to verify your email.');
         }
 
+        $user->update([
+            'last_login_at' => now()
+        ]);
+
         return ApiResponse::success("Login Success", $user);
     }
 

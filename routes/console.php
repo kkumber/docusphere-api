@@ -11,8 +11,9 @@ use App\Events\DelayedAssigneeAssignment;
 use App\Events\DelayedDocuments;
 use App\Events\DelayedDraft;
 use App\Events\DocumentRetention;
+use App\Events\InactiveUsers;
 use App\Models\Document;
-
+use App\Models\User;
 
 Schedule::call(function () {
     // check for delayed docs and update this is for records
@@ -59,6 +60,14 @@ Schedule::call(function () {
 
     if ($documents->isNotEmpty()) {
         event(new DocumentRetention($documents));
+    }
+
+
+    // notification if user is inactive for more than 3 months
+    $inactiveUsers = User::where('last_login', '<', now()->subMonths(3))->where('status', 1)->pluck('id');
+
+    if ($inactiveUsers->isNotEmpty()) {
+       event(new InactiveUsers($inactiveUsers));
     }
 
 
