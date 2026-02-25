@@ -17,7 +17,7 @@ use App\Models\User;
 
 Schedule::call(function () {
     // check for delayed docs and update this is for records
-    $delayedDocs = Document::where('due_date', '<', now())->whereIn('status_id', [Status::DOC_PENDING, Status::DOC_DRAFT_PENDING, Status::DOC_RELEASED, Status::DOC_DRAFT_FOR_ISSUANCE])->pluck('id');
+    $delayedDocs = Document::where('due_date', '<', now())->whereIn('status_id', [Status::DOC_PENDING, Status::DOC_DRAFT_PENDING, Status::DOC_RELEASED])->pluck('id');
 
     Document::whereIn('id', $delayedDocs)->update(['status_id' => Status::DOC_DELAYED]);
 
@@ -64,7 +64,7 @@ Schedule::call(function () {
 
 
     // notification if user is inactive for more than 3 months
-    $inactiveUsers = User::where('last_login', '<', now()->subMonths(3))->where('status', 1)->pluck('id');
+    $inactiveUsers = User::where('last_login_at', '<', now()->subMonths(3))->where('status', 1)->pluck('id');
 
     if ($inactiveUsers->isNotEmpty()) {
        event(new InactiveUsers($inactiveUsers));
