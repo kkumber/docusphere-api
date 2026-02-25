@@ -56,7 +56,7 @@ class DocumentAssignmentController extends Controller
 
         $drafts = Document::with('status', 'user')
             ->where('uploaded_by', $userId)
-            ->whereIn('status_id', [Status::DOC_DRAFT_PENDING, Status::DOC_DRAFT_IN_REVIEW, Status::DOC_DRAFT_APPROVED, Status::DOC_REJECTED, Status::DOC_RETURNED, Status::DOC_COMPLETED])
+            ->whereIn('status_id', [Status::DOC_DRAFT_PENDING, Status::DOC_DRAFT_IN_REVIEW, Status::DOC_DRAFT_APPROVED, Status::DOC_REJECTED, Status::DOC_RETURNED, Status::DOC_COMPLETED, Status::DOC_ARCHIVED])
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(fn($d) => [
