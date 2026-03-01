@@ -64,9 +64,13 @@ class UserPolicy
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, User $model): bool
+    public function restore(User $actor, User $target): bool
     {
-        return $user->hasRole('admin');
+        if ($target->hasRole('admin') && $actor->email !== 'docusphere@admin.com') {
+            return false;
+        }
+
+        return $actor->hasRole('admin');
     }
 
     /**
