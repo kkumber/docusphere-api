@@ -80,8 +80,6 @@ class DocumentService
         return $document;
     }
 
-
-
     /**
      * @param UploadedFile $file 
      * @param array $metadata ['document_id', 'public_id', 'user_id']
@@ -127,29 +125,6 @@ class DocumentService
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 ?>
