@@ -19,7 +19,7 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): JsonResponse
     {
-       
+        $request->authenticate();
 
         $email = $request->input('email');
         $user = User::where('email', $email)->first();
@@ -35,8 +35,6 @@ class AuthenticatedSessionController extends Controller
         $user->update([
             'last_login_at' => now()
         ]);
-
-        $request->authenticate();
 
         $request->session()->regenerate();
 
