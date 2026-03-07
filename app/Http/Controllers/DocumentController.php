@@ -150,5 +150,30 @@ class DocumentController extends Controller
         );
     }
 
+    // download monthly report of handled documents
+    public function downloadMonthlyReport(DocumentDownloadService $pdfService)
+    {
+        $user = auth()->user();
 
+        if ($user->hasRole('records')) {
+            $userMonthlyHandledDocuments = Document::with('status')
+                ->whereMonth('created_at', date('m'))
+                ->whereYear('created_at', date('Y'))
+                ->get();
+        } else {
+            $userMonthlyHandledDocuments = $user->documentAssignments()
+                ->with('document.status')
+                ->where('status_id', Status::DOC_ASSIGN_COMPLETED)
+                ->whereYear('created_at', date('Y'))
+                ->whereMonth('created_at', date('m'))
+                ->get()
+                ->pluck('document');
+        }
+
+        return $pdfService->downloadMonthlyReportResponse(
+            $userMonthlyHandledDocuments,
+            $user,
+            'monthly_report_' . now()->format('Y_m') . '.pdf'
+        );
+    }
 }

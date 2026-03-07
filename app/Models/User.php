@@ -80,6 +80,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(DocumentFile::class, 'uploaded_by');
     }
 
+    public function documentAssignments()
+    {
+        return $this->hasMany(DocumentAssignment::class, 'assigned_to');
+    }
+
     public function documentTrackingSent()
     {
         return $this->hasMany(DocumentTracking::class, 'from_user');

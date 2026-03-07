@@ -78,6 +78,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     // Download DOcument
     Route::get('download-logs/{document}', [DocumentController::class, 'downloadSigned']);
+    Route::get('download/monthly-report', [DocumentController::class, 'downloadMonthlyReport']);
 
     // Notifications
     Route::get('notifications/limit', [NotificationController::class, 'listNotificationWithLimit']);

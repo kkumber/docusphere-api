@@ -132,4 +132,5 @@ class DocumentAssignmentController extends Controller
         $this->documentAssignmentService->createDocumentAssignment($user, $validated);
         return ApiResponse::success('Assignments created',data: []); 
     }
+
 }

@@ -7,6 +7,7 @@ use setasign\Fpdi\PdfParser\StreamReader;
 use setasign\Fpdi\Tcpdf\Fpdi;
 use App\Enums\Actions;
 use App\Models\DocAssignmentAction;
+use App\Models\Status;
 use App\Models\User;
 
 class DocumentDownloadService
@@ -423,6 +424,282 @@ class DocumentDownloadService
         User $user = null
     ) {
         $pdfBinary = $this->makeSignedPdfFromUrl($cloudinaryUrl, $signatories, $actionLogs, $watermarkText, user: $user);
+
+        return response($pdfBinary, 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . addslashes($filename) . '"',
+            'Content-Length'      => strlen($pdfBinary),
+        ]);
+    }
+
+
+    /**
+     * Monthly Report column widths (180mm total):
+     * Tracking No: 25 | Title: 40 | Category: 22 | Request Type: 22 | Originating Office: 30 | Status: 20 | Due Date: 21
+     */
+    private const COL_TRACKING      = 25;
+    private const COL_TITLE         = 40;
+    private const COL_CATEGORY      = 22;
+    private const COL_REQUEST_TYPE  = 22;
+    private const COL_ORIG_OFFICE   = 30;
+    private const COL_STATUS        = 20;
+    private const COL_DUE_DATE      = 21;
+
+   /**
+     * Generate a monthly report PDF and return binary string.
+     */
+    public function makeMonthlyReportPdf(
+        \Illuminate\Support\Collection $documents,
+        ?User $user = null,
+        ?array $options = null
+    ): string {
+        $options = array_merge([
+            'include_footer' => true,
+            'title'          => 'MONTHLY DOCUMENT REPORT',
+            'month_label'    => now()->format('F Y'),
+            'watermark'      => 'Docusphere DTS',
+        ], (array) $options);
+
+        $pdf = new Fpdi();
+        $pdf->SetCreator('DocuSphere DTS');
+        $pdf->SetAuthor('DocuSphere');
+        $pdf->SetTitle($options['title']);
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
+        $pdf->SetAutoPageBreak(false);
+        $pdf->SetMargins(self::LEFT_MARGIN, 15, self::LEFT_MARGIN);
+
+        $this->appendMonthlyReportPage($pdf, $documents, $options, $user);
+
+        return $pdf->Output('', 'S');
+    }
+
+    /**
+     * Append monthly report page with document listing table.
+     */
+    private function appendMonthlyReportPage(
+        Fpdi $pdf,
+        \Illuminate\Support\Collection $documents,
+        array $options,
+        ?User $user
+    ): void {
+        $pdf->AddPage('P', 'A4');
+        $pdf->SetMargins(self::LEFT_MARGIN, 15, self::LEFT_MARGIN);
+
+        $pageWidth  = $pdf->getPageWidth();
+        $pageHeight = $pdf->getPageHeight();
+
+        // Watermark (drawn first, behind all content)
+        $this->addWatermark($pdf, $options['watermark'] ?? 'OFFICIAL RECORD', $pageWidth, $pageHeight);
+
+        // ── Header banner ────────────────────────────────────────────────────────
+        // Dark top bar
+        $pdf->SetFillColor(15, 40, 80);
+        $pdf->Rect(0, 0, $pageWidth, 22, 'F');
+
+        // Organisation name (left)
+        $pdf->SetY(5);
+        $pdf->SetX(self::LEFT_MARGIN);
+        $pdf->SetFont('helvetica', 'B', 11);
+        $pdf->SetTextColor(255, 255, 255);
+        $pdf->Cell(100, 6, 'DocuSphere DTS', 0, 0, 'L');
+
+        // "OFFICIAL" badge (right)
+        $pdf->SetFont('helvetica', 'B', 7);
+        $pdf->SetTextColor(180, 200, 230);
+        $pdf->Cell(0, 6, 'DOCUMENT TRACKING SYSTEM', 0, 1, 'R');
+
+        $pdf->SetX(self::LEFT_MARGIN);
+        $pdf->SetFont('helvetica', '', 7);
+        $pdf->SetTextColor(160, 185, 220);
+        $pdf->Cell(0, 5, 'Automated Official Record  —  Do not alter this document', 0, 1, 'L');
+
+        // ── Sub-header strip ─────────────────────────────────────────────────────
+        $pdf->SetFillColor(235, 240, 248);
+        $pdf->Rect(0, 22, $pageWidth, 18, 'F');
+
+        $pdf->SetY(25);
+        $pdf->SetX(self::LEFT_MARGIN);
+        $pdf->SetFont('helvetica', 'B', 13);
+        $pdf->SetTextColor(15, 40, 80);
+        $pdf->Cell(120, 8, strtoupper($options['title']), 0, 0, 'L');
+
+        // Period badge (right side of sub-header)
+        $badgeX = $pageWidth - self::LEFT_MARGIN - 45;
+        $pdf->SetFillColor(15, 40, 80);
+        $pdf->RoundedRect($badgeX, 24, 45, 10, 2, '1111', 'F');
+        $pdf->SetFont('helvetica', 'B', 8);
+        $pdf->SetTextColor(255, 255, 255);
+        $pdf->SetXY($badgeX, 26.5);
+        $pdf->Cell(45, 5, $options['month_label'], 0, 1, 'C');
+
+        // Thin accent rule below sub-header
+        $pdf->SetDrawColor(15, 40, 80);
+        $pdf->SetLineWidth(0.6);
+        $pdf->Line(0, 40, $pageWidth, 40);
+        $pdf->SetLineWidth(0.2);
+
+        // ── Meta row (generated at / downloaded by) ───────────────────────────────
+        $pdf->SetY(43);
+        $pdf->SetX(self::LEFT_MARGIN);
+        $pdf->SetFont('helvetica', '', 7.5);
+        $pdf->SetTextColor(90, 90, 90);
+
+        $generatedAt   = now()->format('F d, Y \a\t H:i:s T');
+        $downloadedBy  = $user
+            ? $user->first_name . ' ' . $user->last_name . ' (' . ($user->role ?? 'N/A') . ')'
+            : 'System';
+        $totalDocs     = $documents->count();
+
+        $pdf->Cell(90, 5, 'Generated: ' . $generatedAt, 0, 0, 'L');
+        $pdf->Cell(0,  5, 'Downloaded by: ' . $downloadedBy, 0, 1, 'R');
+
+        $pdf->SetX(self::LEFT_MARGIN);
+        $pdf->SetFont('helvetica', 'I', 7.5);
+        $pdf->SetTextColor(120, 120, 120);
+        $pdf->Cell(0, 5,
+            'This report contains ' . $totalDocs . ' document(s) handled during the reporting period. ' .
+            'This is a system-generated official record from DocuSphere DTS.',
+            0, 1, 'L'
+        );
+
+        // Separator before table
+        $pdf->SetDrawColor(200, 210, 225);
+        $pdf->SetLineWidth(0.3);
+        $pdf->Line(self::LEFT_MARGIN, $pdf->GetY() + 2, $pageWidth - self::LEFT_MARGIN, $pdf->GetY() + 2);
+        $pdf->Ln(5);
+
+        // Reset colours for table content
+        $pdf->SetTextColor(0, 0, 0);
+        $pdf->SetDrawColor(0, 0, 0);
+        $pdf->SetLineWidth(0.2);
+
+        // ── Table ─────────────────────────────────────────────────────────────────
+        $this->drawMonthlyReportTableHeader($pdf);
+
+        $pdf->SetFont('helvetica', '', self::FONT_ROW);
+        foreach ($documents as $doc) {
+            $this->drawMonthlyReportTableRow($pdf, $doc, $pageWidth, $pageHeight);
+        }
+
+        if ($documents->isEmpty()) {
+            $pdf->SetFillColor(255, 255, 255);
+            $pdf->Cell(0, self::LINE_HEIGHT * 2, 'No documents found for this period.', 1, 1, 'C');
+        }
+
+        if ($options['include_footer'] && $user) {
+            $this->addFooter($pdf, $pageWidth, $pageHeight, $user);
+        }
+    }
+
+    /**
+     * Draw the monthly report table header.
+     */
+    private function drawMonthlyReportTableHeader(Fpdi $pdf): void
+    {
+        $pdf->SetLineWidth(0.2);
+        $pdf->SetFillColor(240, 240, 240);
+        $pdf->SetFont('helvetica', 'B', self::FONT_HEADER);
+
+        $pdf->Cell(self::COL_TRACKING,     self::HEADER_HEIGHT, 'Tracking No',       1, 0, 'C', true);
+        $pdf->Cell(self::COL_TITLE,        self::HEADER_HEIGHT, 'Title',              1, 0, 'C', true);
+        $pdf->Cell(self::COL_CATEGORY,     self::HEADER_HEIGHT, 'Category',           1, 0, 'C', true);
+        $pdf->Cell(self::COL_REQUEST_TYPE, self::HEADER_HEIGHT, 'Request Type',       1, 0, 'C', true);
+        $pdf->Cell(self::COL_ORIG_OFFICE,  self::HEADER_HEIGHT, 'Originating Office', 1, 0, 'C', true);
+        $pdf->Cell(self::COL_STATUS,       self::HEADER_HEIGHT, 'Status',             1, 0, 'C', true);
+        $pdf->Cell(self::COL_DUE_DATE,     self::HEADER_HEIGHT, 'Due Date',           1, 1, 'C', true);
+    }
+
+    /**
+     * Draw one monthly report table row with proper multi-line and page-break handling.
+     */
+    private function drawMonthlyReportTableRow(Fpdi $pdf, $doc, float $pageWidth, float $pageHeight): void
+    {
+        // ── Status fix: status_id is an integer FK, pass it directly to Status::label()
+        $statusLabel  = Status::label((int) $doc->status_id);
+        $dueDateLabel = $doc->due_date
+            ? \Carbon\Carbon::parse($doc->due_date)->format('Y-m-d')
+            : 'N/A';
+
+        $cols = [
+            ['width' => self::COL_TRACKING,     'align' => 'C', 'text' => $doc->tracking_no        ?? 'N/A'],
+            ['width' => self::COL_TITLE,        'align' => 'L', 'text' => $doc->title               ?? 'N/A'],
+            ['width' => self::COL_CATEGORY,     'align' => 'C', 'text' => $doc->category            ?? 'N/A'],
+            ['width' => self::COL_REQUEST_TYPE, 'align' => 'C', 'text' => $doc->request_type        ?? 'N/A'],
+            ['width' => self::COL_ORIG_OFFICE,  'align' => 'L', 'text' => $doc->originating_office  ?? 'N/A'],
+            ['width' => self::COL_STATUS,       'align' => 'C', 'text' => $statusLabel],
+            ['width' => self::COL_DUE_DATE,     'align' => 'C', 'text' => $dueDateLabel],
+        ];
+
+        $lineH   = self::LINE_HEIGHT;
+        $padding = 2;
+
+        $maxLines = 1;
+        foreach ($cols as &$col) {
+            $usableWidth = $col['width'] - ($padding * 2);
+            $words       = explode(' ', $col['text']);
+            $lines       = 1;
+            $lineText    = '';
+
+            foreach ($words as $word) {
+                $test = $lineText === '' ? $word : $lineText . ' ' . $word;
+                if ($pdf->GetStringWidth($test) > $usableWidth && $lineText !== '') {
+                    $lines++;
+                    $lineText = $word;
+                } else {
+                    $lineText = $test;
+                }
+            }
+
+            $col['lines'] = $lines;
+            $maxLines     = max($maxLines, $lines);
+        }
+        unset($col);
+
+        $rowHeight   = $maxLines * $lineH + ($padding * 2);
+        $footerSpace = 30;
+        $startY      = $pdf->GetY();
+
+        if ($startY + $rowHeight > $pageHeight - $footerSpace) {
+            $pdf->AddPage('P', 'A4');
+            $pdf->SetMargins(self::LEFT_MARGIN, 15, self::LEFT_MARGIN);
+            // Watermark on continuation pages too
+            $this->addWatermark($pdf, 'OFFICIAL RECORD', $pageWidth, $pageHeight);
+            $this->drawMonthlyReportTableHeader($pdf);
+            $startY = $pdf->GetY();
+        }
+
+        $curX = self::LEFT_MARGIN;
+        foreach ($cols as $col) {
+            $pdf->SetXY($curX + $padding, $startY + $padding);
+            $pdf->MultiCell(
+                $col['width'] - ($padding * 2),
+                $lineH,
+                $col['text'],
+                0,
+                $col['align'],
+                false
+            );
+            $pdf->SetLineWidth(0.2);
+            $pdf->Rect($curX, $startY, $col['width'], $rowHeight, 'D');
+            $curX += $col['width'];
+        }
+
+        $pdf->SetXY(self::LEFT_MARGIN, $startY + $rowHeight);
+    }
+
+    /**
+     * Send monthly report PDF as a download response.
+     */
+    public function downloadMonthlyReportResponse(
+        \Illuminate\Support\Collection $documents,
+        User $user,
+        ?string $filename = null,
+        ?array $options = null
+    ) {
+        $filename  = $filename ?? 'monthly_report_' . now()->format('Y_m') . '.pdf';
+        $options   = array_merge(['month_label' => now()->format('F Y')], (array) $options);
+        $pdfBinary = $this->makeMonthlyReportPdf($documents, $user, $options);
 
         return response($pdfBinary, 200, [
             'Content-Type'        => 'application/pdf',
