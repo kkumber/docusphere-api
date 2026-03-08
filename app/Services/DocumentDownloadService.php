@@ -437,8 +437,8 @@ class DocumentDownloadService
      * Monthly Report column widths (180mm total):
      * Tracking No: 25 | Title: 40 | Category: 22 | Request Type: 22 | Originating Office: 30 | Status: 20 | Due Date: 21
      */
-    private const COL_TRACKING      = 25;
-    private const COL_TITLE         = 40;
+    private const COL_TRACKING      = 35;
+    private const COL_TITLE         = 0;
     private const COL_CATEGORY      = 22;
     private const COL_REQUEST_TYPE  = 22;
     private const COL_ORIG_OFFICE   = 30;
@@ -475,7 +475,8 @@ class DocumentDownloadService
     }
 
     /**
-     * Append monthly report page with document listing table.
+     * Append monthly report page — DepEd Makati formal style.
+     * Consistent with appendSignatoriesPage / appendActionLogsPage.
      */
     private function appendMonthlyReportPage(
         Fpdi $pdf,
@@ -489,90 +490,154 @@ class DocumentDownloadService
         $pageWidth  = $pdf->getPageWidth();
         $pageHeight = $pdf->getPageHeight();
 
-        // Watermark (drawn first, behind all content)
-        $this->addWatermark($pdf, $options['watermark'] ?? 'OFFICIAL RECORD', $pageWidth, $pageHeight);
+        // ── Watermark (behind everything) ────────────────────────────────────────
+        $this->addWatermark($pdf, $options['watermark'] ?? null, $pageWidth, $pageHeight);
 
-        // ── Header banner ────────────────────────────────────────────────────────
-        // Dark top bar
-        $pdf->SetFillColor(15, 40, 80);
-        $pdf->Rect(0, 0, $pageWidth, 22, 'F');
+        // ── Header: dark navy bar ─────────────────────────────────────────────────
+        $navyR = 15; $navyG = 40; $navyB = 80;
+        $goldR = 201; $goldG = 168; $goldB = 76;
 
-        // Organisation name (left)
-        $pdf->SetY(5);
-        $pdf->SetX(self::LEFT_MARGIN);
-        $pdf->SetFont('helvetica', 'B', 11);
+        $pdf->SetFillColor($navyR, $navyG, $navyB);
+        $pdf->Rect(0, 0, $pageWidth, 24, 'F');
+
+        // Gold accent strip
+        $pdf->SetFillColor($goldR, $goldG, $goldB);
+        $pdf->Rect(0, 24, $pageWidth, 2, 'F');
+
+        // Organisation name
+        $pdf->SetXY(self::LEFT_MARGIN, 5);
+        $pdf->SetFont('helvetica', 'B', 12);
         $pdf->SetTextColor(255, 255, 255);
-        $pdf->Cell(100, 6, 'DocuSphere DTS', 0, 0, 'L');
+        $pdf->Cell(120, 7, 'Department of Education', 0, 0, 'L');
 
-        // "OFFICIAL" badge (right)
-        $pdf->SetFont('helvetica', 'B', 7);
-        $pdf->SetTextColor(180, 200, 230);
-        $pdf->Cell(0, 6, 'DOCUMENT TRACKING SYSTEM', 0, 1, 'R');
+        $pdf->SetFont('helvetica', 'B', 8);
+        $pdf->SetTextColor($goldR, $goldG, $goldB);
+        $pdf->Cell(0, 7, 'SCHOOLS DIVISION OF MAKATI CITY', 0, 1, 'R');
 
-        $pdf->SetX(self::LEFT_MARGIN);
+        $pdf->SetXY(self::LEFT_MARGIN, 13);
         $pdf->SetFont('helvetica', '', 7);
-        $pdf->SetTextColor(160, 185, 220);
-        $pdf->Cell(0, 5, 'Automated Official Record  —  Do not alter this document', 0, 1, 'L');
+        $pdf->SetTextColor(180, 200, 230);
+        $pdf->Cell(120, 5, 'DocuSphere Document Tracking System', 0, 0, 'L');
+        $pdf->SetTextColor(160, 180, 210);
+        $pdf->Cell(0, 5, 'Automated Official Record  —  Do not alter this document', 0, 1, 'R');
 
-        // ── Sub-header strip ─────────────────────────────────────────────────────
+        // ── Sub-header strip (light blue-grey) ───────────────────────────────────
         $pdf->SetFillColor(235, 240, 248);
-        $pdf->Rect(0, 22, $pageWidth, 18, 'F');
+        $pdf->Rect(0, 26, $pageWidth, 20, 'F');
 
-        $pdf->SetY(25);
-        $pdf->SetX(self::LEFT_MARGIN);
+        $pdf->SetXY(self::LEFT_MARGIN, 29);
         $pdf->SetFont('helvetica', 'B', 13);
-        $pdf->SetTextColor(15, 40, 80);
-        $pdf->Cell(120, 8, strtoupper($options['title']), 0, 0, 'L');
+        $pdf->SetTextColor($navyR, $navyG, $navyB);
+        $pdf->Cell(110, 8, strtoupper($options['title']), 0, 0, 'L');
 
-        // Period badge (right side of sub-header)
-        $badgeX = $pageWidth - self::LEFT_MARGIN - 45;
-        $pdf->SetFillColor(15, 40, 80);
-        $pdf->RoundedRect($badgeX, 24, 45, 10, 2, '1111', 'F');
+        // Period badge
+        $badgeX = $pageWidth - self::LEFT_MARGIN - 48;
+        $pdf->SetFillColor($navyR, $navyG, $navyB);
+        $pdf->RoundedRect($badgeX, 28, 48, 11, 2, '1111', 'F');
         $pdf->SetFont('helvetica', 'B', 8);
         $pdf->SetTextColor(255, 255, 255);
-        $pdf->SetXY($badgeX, 26.5);
-        $pdf->Cell(45, 5, $options['month_label'], 0, 1, 'C');
+        $pdf->SetXY($badgeX, 31);
+        $pdf->Cell(48, 5, $options['month_label'], 0, 1, 'C');
 
-        // Thin accent rule below sub-header
-        $pdf->SetDrawColor(15, 40, 80);
-        $pdf->SetLineWidth(0.6);
-        $pdf->Line(0, 40, $pageWidth, 40);
+        // Thin accent rule at bottom of sub-header
+        $pdf->SetDrawColor($navyR, $navyG, $navyB);
+        $pdf->SetLineWidth(0.5);
+        $pdf->Line(0, 46, $pageWidth, 46);
         $pdf->SetLineWidth(0.2);
+        $pdf->SetDrawColor(0, 0, 0);
 
-        // ── Meta row (generated at / downloaded by) ───────────────────────────────
-        $pdf->SetY(43);
+        // ── Meta row ─────────────────────────────────────────────────────────────
+        $pdf->SetY(49);
         $pdf->SetX(self::LEFT_MARGIN);
         $pdf->SetFont('helvetica', '', 7.5);
-        $pdf->SetTextColor(90, 90, 90);
+        $pdf->SetTextColor(80, 80, 80);
 
-        $generatedAt   = now()->format('F d, Y \a\t H:i:s T');
-        $downloadedBy  = $user
+        $generatedAt  = now()->format('F d, Y \a\t H:i:s T');
+        $downloadedBy = $user
             ? $user->first_name . ' ' . $user->last_name . ' (' . ($user->role ?? 'N/A') . ')'
             : 'System';
-        $totalDocs     = $documents->count();
 
-        $pdf->Cell(90, 5, 'Generated: ' . $generatedAt, 0, 0, 'L');
+        $pdf->Cell(95, 5, 'Generated: ' . $generatedAt, 0, 0, 'L');
         $pdf->Cell(0,  5, 'Downloaded by: ' . $downloadedBy, 0, 1, 'R');
 
+        // ── Summary section ───────────────────────────────────────────────────────
+        $pdf->Ln(3);
         $pdf->SetX(self::LEFT_MARGIN);
-        $pdf->SetFont('helvetica', 'I', 7.5);
-        $pdf->SetTextColor(120, 120, 120);
-        $pdf->Cell(0, 5,
-            'This report contains ' . $totalDocs . ' document(s) handled during the reporting period. ' .
-            'This is a system-generated official record from DocuSphere DTS.',
-            0, 1, 'L'
+
+        // Compute summary stats
+        $total     = $documents->count();
+        $completed = $documents->filter(fn($d) => (int)($d->status_id ?? 0) === \App\Models\Status::DOC_COMPLETED)->count();
+        $pending   = $documents->filter(fn($d) => (int)($d->status_id ?? 0) === \App\Models\Status::DOC_PENDING)->count();
+        $others    = $total - $completed - $pending;
+
+        // Summary box background
+        $boxY = $pdf->GetY();
+        $pdf->SetFillColor(245, 247, 252);
+        $pdf->SetDrawColor($navyR, $navyG, $navyB);
+        $pdf->SetLineWidth(0.3);
+        $pdf->RoundedRect(self::LEFT_MARGIN, $boxY, 180, 28, 2, '1111', 'DF');
+
+        // Gold left accent bar on summary box
+        $pdf->SetFillColor($goldR, $goldG, $goldB);
+        $pdf->Rect(self::LEFT_MARGIN, $boxY, 3, 28, 'F');
+
+        // Summary title
+        $pdf->SetXY(self::LEFT_MARGIN + 6, $boxY + 3);
+        $pdf->SetFont('helvetica', 'B', 8);
+        $pdf->SetTextColor($navyR, $navyG, $navyB);
+        $pdf->Cell(0, 5, 'REPORT SUMMARY', 0, 1, 'L');
+
+        // Summary narrative
+        $pdf->SetX(self::LEFT_MARGIN + 6);
+        $pdf->SetFont('helvetica', '', 7.5);
+        $pdf->SetTextColor(50, 50, 50);
+        $pdf->MultiCell(
+            120, 4.5,
+            'This report covers all documents handled during ' . $options['month_label'] . '. ' .
+            'A total of ' . $total . ' document(s) are recorded for this period.',
+            0, 'L', false
         );
 
-        // Separator before table
-        $pdf->SetDrawColor(200, 210, 225);
-        $pdf->SetLineWidth(0.3);
-        $pdf->Line(self::LEFT_MARGIN, $pdf->GetY() + 2, $pageWidth - self::LEFT_MARGIN, $pdf->GetY() + 2);
-        $pdf->Ln(5);
+        // Stat pills (Total | Completed | Pending | Others)
+        $stats = [
+            ['label' => 'TOTAL',     'value' => $total,     'r' => $navyR, 'g' => $navyG, 'b' => $navyB],
+            ['label' => 'COMPLETED', 'value' => $completed, 'r' => 30,     'g' => 120,    'b' => 60],
+            ['label' => 'PENDING',   'value' => $pending,   'r' => 180,    'g' => 100,    'b' => 0],
+            ['label' => 'OTHERS',    'value' => $others,    'r' => 100,    'g' => 100,    'b' => 100],
+        ];
 
-        // Reset colours for table content
+        $pillW = 38;
+        $pillX = self::LEFT_MARGIN + 6;
+        $pillY = $boxY + 17;
+
+        foreach ($stats as $stat) {
+            $pdf->SetFillColor($stat['r'], $stat['g'], $stat['b']);
+            $pdf->RoundedRect($pillX, $pillY, $pillW, 8, 1.5, '1111', 'F');
+            $pdf->SetFont('helvetica', 'B', 7);
+            $pdf->SetTextColor(255, 255, 255);
+            $pdf->SetXY($pillX, $pillY + 0.5);
+            $pdf->Cell($pillW, 4, $stat['label'], 0, 1, 'C');
+            $pdf->SetFont('helvetica', 'B', 9);
+            $pdf->SetXY($pillX, $pillY + 4);
+            $pdf->Cell($pillW, 3.5, (string) $stat['value'], 0, 1, 'C');
+            $pillX += $pillW + 3;
+        }
+
         $pdf->SetTextColor(0, 0, 0);
         $pdf->SetDrawColor(0, 0, 0);
         $pdf->SetLineWidth(0.2);
+
+        // Separator before table
+        $pdf->SetY($boxY + 32);
+        $pdf->SetX(self::LEFT_MARGIN);
+        $pdf->SetDrawColor(200, 210, 225);
+        $pdf->SetLineWidth(0.3);
+        $pdf->Line(self::LEFT_MARGIN, $pdf->GetY(), $pageWidth - self::LEFT_MARGIN, $pdf->GetY());
+        $pdf->Ln(4);
+
+        $pdf->SetDrawColor(0, 0, 0);
+        $pdf->SetLineWidth(0.2);
+        $pdf->SetTextColor(0, 0, 0);
 
         // ── Table ─────────────────────────────────────────────────────────────────
         $this->drawMonthlyReportTableHeader($pdf);
