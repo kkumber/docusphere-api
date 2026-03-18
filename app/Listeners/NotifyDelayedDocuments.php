@@ -47,8 +47,7 @@ class NotifyDelayedDocuments
                     'document_id' => $document->id,
                     'subject' => "URGENT: Document {$document->tracking_no} is delayed. Please process as soon as possible.",
                     'data' => json_encode([
-                        'request_type' => $document->request_type,
-                        'instructions' => $document->instructions ?? null,
+                        'request_type' => 'Delayed Document',
                     ]),
                     'is_read' => false,
                     'created_at' => now(),

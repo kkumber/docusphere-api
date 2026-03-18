@@ -44,6 +44,7 @@ class SendNotificationInactiveUsers implements ShouldQueue
                     'data' => json_encode([
                         'user_id' => $user->id,
                         'name' => $user->first_name . ' ' . $user->last_name,
+                        'request_type' => 'Inactive User',
                     ]),
                     'is_read' => false,
                     'created_at' => now(),

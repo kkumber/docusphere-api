@@ -33,8 +33,7 @@ class NotifyUploaderDraftDelayed
                 'document_id' => $draft->id,
                 'subject' => "URGENT: Document {$draft->tracking_no} is delayed. Please process as soon as possible.",
                 'data' => json_encode([
-                    'request_type' => $draft->request_type,
-                    'instructions' => $draft->instructions ?? null,
+                    'request_type' => 'Delayed Assignment',
                 ]),
                 'is_read' => false,
                 'created_at' => now(),

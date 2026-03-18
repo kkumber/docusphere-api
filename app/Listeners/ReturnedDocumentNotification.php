@@ -35,9 +35,9 @@ class ReturnedDocumentNotification
         $notification = [
             'user_id' => $document->uploaded_by,
             'document_id' => $document->id,
-            'subject' => 'Document ' . $document->tracking_no . ' was returned',
+            'subject' => $document->tracking_no . ' was returned',
             'data' => json_encode([
-                'request_type' => $document->request_type,
+                'request_type' => 'Returned Document',
                 'instructions' => $remarks,
             ]),
             'is_read' => false,
