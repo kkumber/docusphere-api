@@ -21,7 +21,19 @@ class RecordsController extends Controller
     // View all documents in the system
     public function index()
     {
-        $documents = Document::latest()->get();
+        $priorityOrder = [Status::DOC_DELAYED, Status::DOC_PENDING, Status::DOC_RELEASED, Status::DOC_COMPLETED, Status::DOC_REJECTED, Status::DOC_ARCHIVED, Status::DOC_RETURNED];
+
+        $orderCase = "CASE ";
+        
+        foreach ($priorityOrder as $index => $status) {
+            $orderCase .= "WHEN status_id = $status THEN " . ($index + 1) . " ";
+        }
+        $orderCase .= "END";
+
+        $documents = Document::whereIn('status_id', $priorityOrder)
+            ->orderByRaw($orderCase)
+            ->latest()
+            ->get();
         return ApiResponse::success(data: $documents);
     }
 
