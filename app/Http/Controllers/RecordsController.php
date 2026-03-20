@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\CategoryType;
 use App\Events\DelayedDocuments;
 use App\Helpers\ApiResponse;
 use App\Http\Requests\StoreDocumentRequest;
@@ -21,7 +22,19 @@ class RecordsController extends Controller
     // View all documents in the system
     public function index()
     {
-        $documents = Document::latest()->get();
+        $priorityOrder = [Status::DOC_DELAYED, Status::DOC_PENDING, Status::DOC_RELEASED, Status::DOC_COMPLETED, Status::DOC_REJECTED, Status::DOC_ARCHIVED, Status::DOC_RETURNED];
+
+        $orderCase = "CASE ";
+        
+        foreach ($priorityOrder as $index => $status) {
+            $orderCase .= "WHEN status_id = $status THEN " . ($index + 1) . " ";
+        }
+        $orderCase .= "END";
+
+        $documents = Document::whereIn('status_id', $priorityOrder)
+            ->orderByRaw($orderCase)
+            ->latest()
+            ->get();
         return ApiResponse::success(data: $documents);
     }
 
@@ -32,6 +45,8 @@ class RecordsController extends Controller
 
         $user = auth()->user();
 
+        $predefineDueDateBasedOnCategory = CategoryType::officialTimeline($validated['category']);
+
         $documentDetails = [
             'tracking_no' => strtoupper($validated['tracking_no']),
             'title' => strtoupper($validated['title']),
@@ -41,7 +56,7 @@ class RecordsController extends Controller
             'request_type' => $validated['request_type'],
             'uploaded_by' => $user->id,
             'status_id' => Status::DOC_PENDING,
-            'due_date' => $validated['due_date'] ?? null,
+            'due_date' => $predefineDueDateBasedOnCategory,
         ];
 
         $file = $validated['file'];
@@ -69,6 +84,5 @@ class RecordsController extends Controller
         $document->update(['status_id' => Status::DOC_ARCHIVED]);
         return ApiResponse::success('Document archived');
     }
-
 
 }

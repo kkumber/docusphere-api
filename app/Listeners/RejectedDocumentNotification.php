@@ -42,9 +42,9 @@ class RejectedDocumentNotification
             $notifyRecords[] = [
                 'user_id' => $record->id,
                 'document_id' => $event->document->id,
-                'subject' => 'Document ' . $event->document->tracking_no . ' was Rejected',
+                'subject' => $event->document->tracking_no . ' was rejected',
                 'data' => json_encode([
-                    'request_type' => $event->document->request_type,
+                    'request_type' => 'Rejected Document',
                     'instructions' => $remarks,
                 ]),
                 'is_read' => false,
@@ -67,9 +67,9 @@ class RejectedDocumentNotification
             Notification::insert([
                 'user_id' => $event->document->uploaded_by,
                 'document_id' => $event->document->id,
-                'subject' => 'Document ' . $event->document->tracking_no . ' was rejected',
+                'subject' => $event->document->tracking_no . ' was rejected',
                 'data' => json_encode([
-                    'request_type' => $event->document->request_type,
+                    'request_type' => 'Rejected Document',
                     'instructions' => $remarks,
                 ]),
                 'is_read' => false,

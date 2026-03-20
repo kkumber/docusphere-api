@@ -37,7 +37,7 @@ class NotifyRecordsOfArchivedDocument implements ShouldQueue
             foreach ($documents as $document) {
                 $notificationExists = Notification::where('document_id', $document->id)
                     ->where('user_id', $record->id)
-                    ->where('subject', "Document {$document->tracking_no} has reached its retention period and is eligible for deletion")
+                    ->where('subject', "{$document->tracking_no} has reached its retention period and is eligible for deletion")
                     ->exists();
 
                 if ($notificationExists) {
@@ -47,10 +47,9 @@ class NotifyRecordsOfArchivedDocument implements ShouldQueue
                 $notifyRecords[] = [
                     'user_id' => $record->id,
                     'document_id' => $document->id,
-                    'subject' => "Document {$document->tracking_no} has reached its retention period and is eligible for deletion",
+                    'subject' => "{$document->tracking_no} has reached its retention period and is eligible for deletion",
                     'data' => json_encode([
-                        'request_type' => $document->request_type,
-                        'instructions' => $document->instructions ?? null,
+                        'request_type' => 'Document Retention',
                     ]),
                     'is_read' => false,
                     'created_at' => now(),

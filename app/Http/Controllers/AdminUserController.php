@@ -95,8 +95,8 @@ class AdminUserController extends Controller
 
             foreach ($validated['users'] as $userData) {
                 $newUser = User::create([
-                    'first_name' => $userData['first_name'],
-                    'last_name'  => $userData['last_name'],
+                    'first_name' => ucfirst(strtolower($userData['first_name'])),
+                    'last_name'  => ucfirst(strtolower($userData['last_name'])),
                     'email'      => $userData['email'],
                     'office'     => $userData['office'] ?? null,
                     'department' => $userData['department'] ?? null,

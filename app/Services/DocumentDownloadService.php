@@ -438,7 +438,11 @@ class DocumentDownloadService
      * Tracking No: 25 | Title: 40 | Category: 22 | Request Type: 22 | Originating Office: 30 | Status: 20 | Due Date: 21
      */
     private const COL_TRACKING      = 35;
+<<<<<<< HEAD
+    private const COL_TITLE         = 0;
+=======
     private const COL_TITLE         = 25;
+>>>>>>> 6aede08f1de850becef491562800e1a20dded3f7
     private const COL_CATEGORY      = 22;
     private const COL_REQUEST_TYPE  = 27;
     private const COL_ORIG_OFFICE   = 30;
@@ -475,7 +479,8 @@ class DocumentDownloadService
     }
 
     /**
-     * Append monthly report page with document listing table.
+     * Append monthly report page — DepEd Makati formal style.
+     * Consistent with appendSignatoriesPage / appendActionLogsPage.
      */
     private function appendMonthlyReportPage(
         Fpdi $pdf,
@@ -544,7 +549,23 @@ class DocumentDownloadService
         );
         $pdf->Ln(5);
 
+<<<<<<< HEAD
+        // Separator before table
+        $pdf->SetY($boxY + 32);
+        $pdf->SetX(self::LEFT_MARGIN);
+        $pdf->SetDrawColor(200, 210, 225);
+        $pdf->SetLineWidth(0.3);
+        $pdf->Line(self::LEFT_MARGIN, $pdf->GetY(), $pageWidth - self::LEFT_MARGIN, $pdf->GetY());
+        $pdf->Ln(4);
+
+        $pdf->SetDrawColor(0, 0, 0);
+        $pdf->SetLineWidth(0.2);
+        $pdf->SetTextColor(0, 0, 0);
+
+        // ── Table ─────────────────────────────────────────────────────────────────
+=======
         // Table
+>>>>>>> 6aede08f1de850becef491562800e1a20dded3f7
         $this->drawMonthlyReportTableHeader($pdf);
 
         $pdf->SetFont('helvetica', '', self::FONT_ROW);

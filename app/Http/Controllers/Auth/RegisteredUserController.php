@@ -22,8 +22,8 @@ class RegisteredUserController extends Controller
         $validated = $request->validated();
 
         $user = User::create([
-            'first_name' => $validated['first_name'],
-            'last_name' => $validated['last_name'],
+            'first_name' => ucfirst(strtolower($validated['first_name'])),
+            'last_name' => ucfirst(strtolower($validated['last_name'])),
             'office' => $validated['office'] ?? null,
             'designation' => $validated['designation'] ?? null,
             'department' => $validated['department'] ?? null,

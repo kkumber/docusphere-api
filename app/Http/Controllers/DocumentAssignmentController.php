@@ -32,6 +32,8 @@ class DocumentAssignmentController extends Controller
     public function index()
     {
         $userId = auth()->id();
+        $priorityOrder = [Status::DOC_ASSIGN_DELAYED, Status::DOC_RETURNED, Status::DOC_ASSIGN_PENDING, Status::DOC_DRAFT_PENDING, Status::DOC_DRAFT_IN_REVIEW, Status::DOC_COMPLETED, Status::DOC_ARCHIVED, Status::DOC_REJECTED, Status::DOC_DRAFT_APPROVED];
+
         $assignments = DocumentAssignment::with('document', 'status')
             ->where('assigned_to', $userId)
             ->orderBy('created_at', 'desc')
@@ -71,11 +73,13 @@ class DocumentAssignmentController extends Controller
                 'category' => $d->category,
                 'originating_office' => $d->originating_office,
                 'uploaded_by' => $d->uploaded_by
-
             ]);
 
         $documents = $drafts->concat($assignments)
             ->unique('id')
+            ->sortBy(function ($document) use ($priorityOrder) {
+                return array_search($document['status_id'], $priorityOrder);
+            })
             ->values();
 
 

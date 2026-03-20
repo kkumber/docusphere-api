@@ -51,8 +51,7 @@ class NotifyAssignerDelayedAssignment implements ShouldQueue
                 'document_id' => $assignment->document_id,
                 'subject' => "URGENT: Document {$assignment->document->tracking_no} has been delayed for more than 3 days. Please contact user {$assignment->assignee->first_name} {$assignment->assignee->last_name} as soon as possible.",
                 'data' => json_encode([
-                    'request_type' => $assignment->request_type,
-                    'instructions' => $assignment->instructions ?? null,
+                    'request_type' => 'Assignee Delayed Assignment',
                 ]),
                 'is_read' => false,
                 'created_at' => now(),
