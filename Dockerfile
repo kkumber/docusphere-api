@@ -1,0 +1,41 @@
+FROM php:8.2-cli-alpine
+
+WORKDIR /app
+
+
+# Install system dependencies and PHP extensions
+RUN apk add --no-cache \
+    zip \
+    libzip-dev \
+    libxml2-dev \
+    postgresql-dev \
+    postgresql-client \
+    curl-dev \
+    libcurl \
+    oniguruma-dev \
+    && rm -rf /var/cache/apk/*
+
+# Install PHP extensions
+RUN docker-php-ext-install mbstring curl zip pdo_pgsql pgsql xml fileinfo
+
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Copy application files to the container
+COPY . .
+
+# Install PHP dependencies using Composer
+RUN composer install --no-dev --optimize-autoloader
+
+# Configure PHP settings for file uploads
+RUN echo "upload_max_filesize=10M" > /usr/local/etc/php/conf.d/uploads.ini && \
+    echo "post_max_size=10M" >> /usr/local/etc/php/conf.d/uploads.ini && \
+    echo "max_execution_time=300" >> /usr/local/etc/php/conf.d/uploads.ini
+
+# Expose the application port
+EXPOSE 8000
+
+# Start the Laravel development server
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+

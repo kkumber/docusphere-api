@@ -1,0 +1,87 @@
+# Dockerizing Laravel 12: A Step-by-Step Guide & Best Practices
+
+This guide explains how to build a production-ready Docker image for your Laravel 12 application, focusing on performance, security, and custom configurations.
+
+---
+
+## 1. The Strategy: Multi-Stage Builds
+In the provided Dockerfile, we use a "Multi-Stage Build". 
+- **Stage 1 (Builder):** Installs heavy dependencies (git, compilers, composer).
+- **Stage 2 (Runtime):** Copies only the necessary application code and compiled extensions into a clean, tiny image.
+- **Benefit:** Reduces the final image size by 60-80% and improves security by removing build tools.
+
+---
+
+## 2. Command Breakdown
+
+### FROM php:8.2-cli-alpine
+- **What it is:** The "Base Image". 
+- **Alpine:** A tiny Linux distribution (~5MB). We use `cli-alpine` because Laravel 12 is efficient and this version is lightning fast.
+- **Docs:** Official Docker PHP images on Docker Hub.
+
+### RUN apk add --no-cache ...
+- **What it is:** The package manager for Alpine (like `apt` for Ubuntu).
+- **--no-cache:** Best practice. It prevents Alpine from saving the index of packages, keeping the image small.
+
+### RUN docker-php-ext-install ...
+- **What it is:** A helper script provided by the official PHP Docker image.
+- **Function:** It compiles and installs PHP extensions from source.
+- **Standard Extensions for Laravel:** `pdo_pgsql` (Database), `gd` (Images), `zip`, `bcmath`, `pcntl` (Queues).
+
+### COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+- **What it is:** Copying the Composer binary from the official Composer image.
+- **Benefit:** You don't have to manually download or install Composer; you just "steal" it from their official image.
+
+### WORKDIR /app
+- **What it is:** Sets the "Home" directory for all following commands (like `cd /app`).
+
+### COPY . .
+- **What it is:** Copies everything from your computer into the container.
+- **Best Practice:** Use a `.dockerignore` file to exclude `node_modules`, `.git`, and `vendor` so they don't bloat the build.
+
+---
+
+## 3. Custom PHP Configurations (max_file_size, etc.)
+
+In Docker, you shouldn't edit the main `php.ini`. Instead, you add custom `.ini` files to the `conf.d` directory.
+
+### How to increase upload limits:
+Add this line to your Dockerfile (in the Runtime stage):
+
+```dockerfile
+RUN echo "upload_max_filesize=100M" > /usr/local/etc/php/conf.d/app-limits.ini \
+    && echo "post_max_size=100M" >> /usr/local/etc/php/conf.d/app-limits.ini \
+    && echo "memory_limit=512M" >> /usr/local/etc/php/conf.d/app-limits.ini
+```
+
+---
+
+## 4. Best Practices for Laravel 12
+
+1. **Permissions:** Laravel needs to write to `storage` and `bootstrap/cache`.
+   - Command: `chown -R www-data:www-data /app/storage`
+   - Why: `www-data` is the standard user for web servers.
+
+2. **Optimization:** Always run these in production (handled in your `start.sh`):
+   - `php artisan config:cache`
+   - `php artisan route:cache`
+   - `php artisan view:cache`
+
+3. **Signal Handling:** Use `exec` in your entrypoint script.
+   - Example: `exec php artisan serve ...`
+   - Why: This allows Docker to send "Stop" signals directly to PHP, ensuring a graceful shutdown.
+
+4. **Environment Variables:** Never hardcode secrets in the Dockerfile. Use an `.env` file at runtime or pass them via your hosting provider.
+
+---
+
+## 5. How to Build and Run
+
+1. **Build the image:**
+   `docker build -t docusphere-api .`
+
+2. **Run the container:**
+   `docker run -p 8000:8000 --env-file .env docusphere-api`
+
+3. **Access it:**
+   Visit `http://localhost:8000`
