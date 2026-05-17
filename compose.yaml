@@ -5,6 +5,7 @@ services:
       - "8000:8000"
     volumes:
       - .:/app
+      - /app/vendor
     environment:
       DB_CONNECTION: pgsql
       DB_HOST: db
@@ -14,13 +15,13 @@ services:
       DB_PASSWORD: binbin
 
   db:
-    image: postgres:latest
+    image: postgres:18.4
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: binbin
       POSTGRES_DB: docusphere
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
 
 volumes:
   postgres_data:
