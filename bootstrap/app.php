@@ -1,9 +1,14 @@
 <?php
 
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Spatie\Permission\Exceptions\UnauthorizedException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -31,6 +36,11 @@ return Application::configure(basePath: dirname(__DIR__))
         if (!$request->expectsJson()) return null;
 
         return match (true) {
+            $e instanceof AuthenticationException    => response()->json(['message' => $e->getMessage()], 401),
+            $e instanceof UnauthorizedException      => response()->json(['message' => $e->getMessage()], 403),
+            $e instanceof AuthorizationException     => response()->json(['message' => $e->getMessage()], 403),
+            $e instanceof ModelNotFoundException    => response()->json(['message' => $e->getMessage()], 404),
+            $e instanceof UniqueConstraintViolationException => response()->json(['message' => $e->getMessage()], 422),
             $e instanceof DomainException          => response()->json(['message' => $e->getMessage()], 422),
             $e instanceof InvalidArgumentException => response()->json(['message' => $e->getMessage()], 400),
             $e instanceof RuntimeException         => response()->json(['message' => $e->getMessage()], 400),

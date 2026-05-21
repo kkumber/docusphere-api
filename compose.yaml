@@ -1,11 +1,8 @@
 services:
   backend:
-    build: .
+    image: crunchypandesal/docusphere-api:dev
     ports:
       - "8000:8000"
-    volumes:
-      - .:/app
-      - /app/vendor
     environment:
       DB_CONNECTION: pgsql
       DB_HOST: db
@@ -13,6 +10,11 @@ services:
       DB_DATABASE: docusphere
       DB_USERNAME: postgres
       DB_PASSWORD: binbin
+      APP_KEY: ${APP_KEY}
+      CLOUDINARY_URL: ${CLOUDINARY_URL}
+      CLOUDINARY_KEY: ${CLOUDINARY_KEY}
+      CLOUDINARY_SECRET: ${CLOUDINARY_SECRET}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
 
   db:
     image: postgres:18.4
@@ -22,6 +24,15 @@ services:
       POSTGRES_DB: docusphere
     volumes:
       - postgres_data:/var/lib/postgresql
+
+  frontend:
+    image: crunchypandesal/docusphere-fe:dev
+    ports:
+      - "3000:3000"
+    environment:
+      VITE_API_URL: http://localhost:8000
+      VITE_FRONTEND_URL: http://localhost:3000
+      VITE_SUPER_ADMIN: docusphere@admin.com
 
 volumes:
   postgres_data:
