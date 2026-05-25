@@ -1,59 +1,105 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Docusphere API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Docusphere is a web-based document tracking and monitoring system specifically designed for DepEd Makati. This repository serves as the backend API for the platform, facilitating efficient document lifecycle management, automated tracking, and secure inter-departmental workflows.
 
-## About Laravel
+Developed as a capstone project, Docusphere addresses the need for a centralized, digital repository to streamline the handling of official documents, reduce processing time, and ensure accountability through a comprehensive audit trail.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Core Features
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **Document Lifecycle Management**: Comprehensive support for document creation, assignment, and status monitoring.
+- **Role-Based Access Control (RBAC)**: Secure access management for various administrative and operational roles (SDS, Chief, Staff, Admin, Records).
+- **Automated Document Tracking**: Real-time tracking of document actions including acknowledgments, approvals, signatures, and returns.
+- **Electronic Signature Integration**: Capability to digitally sign and validate official documents.
+- **Advanced Notification System**: System-generated alerts for document assignments, status changes, and pending actions.
+- **Reporting and Analytics**: Automated generation of monthly reports and data-driven insights via a centralized dashboard.
+- **Audit Logging**: Detailed historical logging of all document interactions for transparency and accountability.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Tech Stack
 
-## Learning Laravel
+- **Framework**: [Laravel 12](https://laravel.com/)
+- **Language**: [PHP 8.2+](https://www.php.net/)
+- **Authentication**: [Laravel Sanctum](https://laravel.com/docs/sanctum)
+- **Database**: MySQL / PostgreSQL
+- **Media Storage**: [Cloudinary](https://cloudinary.com/)
+- **PDF Handling**: TCPDF / FPDI
+- **Authorization**: [Spatie Laravel Permission](https://spatie.be/docs/laravel-permission/)
+- **Testing**: [Pest PHP](https://pestphp.com/)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## System Requirements
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- PHP >= 8.2
+- Composer
+- MySQL 8.0+ or PostgreSQL
+- Cloudinary Account (for file uploads)
 
-## Laravel Sponsors
+## Installation
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### 1. Clone the Repository
+```bash
+git clone https://github.com/kkumber/docusphere-api.git
+cd docusphere-api
+```
 
-### Premium Partners
+### 2. Install Dependencies
+```bash
+composer install
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### 3. Environment Configuration
+Copy the example environment file and configure your local settings:
+```bash
+cp .env.example .env
+```
+Update the `.env` file with your database credentials and Cloudinary API keys.
 
-## Contributing
+### 4. Application Key Generation
+```bash
+php artisan key:generate
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 5. Database Migration and Seeding
+```bash
+php artisan migrate --seed
+```
 
-## Code of Conduct
+### 6. Start the Development Server
+```bash
+php artisan serve
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Default Accounts
 
-## Security Vulnerabilities
+The database seeder provides several pre-configured accounts for testing and demonstration purposes:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+| Role    | Email                  | Password |
+|---------|------------------------|----------|
+| Admin   | docusphere@admin.com   | password |
+| Records | docusphere@records.com | password |
+| SDS     | docusphere@sds.com     | password |
+| Chief   | docusphere@chief.com   | password |
+| Staff   | docusphere@staff.com   | password |
+
+## Docker Setup
+
+The project includes Docker configuration for streamlined deployment and development.
+
+### Using Docker Compose
+```bash
+docker-compose up -d
+```
+
+## Testing
+
+The project uses Pest PHP for testing. To execute the test suite, run:
+```bash
+php artisan test
+```
+
+## Frontend Repository
+
+The frontend application for Docusphere is maintained in a separate repository.
+(https://github.com/kkumber/docusphere-fe)
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This project is developed for academic purposes as a capstone project. All rights reserved.
