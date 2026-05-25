@@ -19,7 +19,7 @@ Developed as a capstone project, Docusphere addresses the need for a centralized
 - **Framework**: [Laravel 12](https://laravel.com/)
 - **Language**: [PHP 8.2+](https://www.php.net/)
 - **Authentication**: [Laravel Sanctum](https://laravel.com/docs/sanctum)
-- **Database**: MySQL / PostgreSQL
+- **Database**: PostgreSQL
 - **Media Storage**: [Cloudinary](https://cloudinary.com/)
 - **PDF Handling**: TCPDF / FPDI
 - **Authorization**: [Spatie Laravel Permission](https://spatie.be/docs/laravel-permission/)
@@ -29,7 +29,7 @@ Developed as a capstone project, Docusphere addresses the need for a centralized
 
 - PHP >= 8.2
 - Composer
-- MySQL 8.0+ or PostgreSQL
+- PostgreSQL
 - Cloudinary Account (for file uploads)
 
 ## Installation
