@@ -96,6 +96,12 @@ Route::middleware(['auth:sanctum', 'role:admin', 'verified'])->group(function ()
 });
 
 Route::middleware(['auth:sanctum', 'role:admin|records', 'verified'])->group(function () {
-    Route::apiResource('/record/documents', RecordsController::class);
+    Route::apiResource('/record/documents', RecordsController::class)->names([
+    'index'   => 'record.documents.index',
+    'store'   => 'record.documents.store',
+    'show'    => 'record.documents.show',
+    'update'  => 'record.documents.update',
+    'destroy' => 'record.documents.destroy',
+]);
     Route::patch('/record/documents/{document}/archive', [RecordsController::class, 'archive']);
 });
