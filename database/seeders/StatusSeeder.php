@@ -14,6 +14,10 @@ class StatusSeeder extends Seeder
      */
     public function run(): void
     {
+        if (Status::exists()) {
+            return;
+        }
+
         Status::truncate();
 
          $statuses = [

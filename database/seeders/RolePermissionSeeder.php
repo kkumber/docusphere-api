@@ -14,6 +14,10 @@ class RolePermissionSeeder extends Seeder
      */
     public function run(): void
     {
+        if (Role::exists()) {
+            return;
+        }
+
         $roles = ['admin', 'records', 'sds', 'chief', 'staff'];
 
         foreach($roles as $role){

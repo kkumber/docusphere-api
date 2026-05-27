@@ -29,6 +29,10 @@ class DatabaseSeeder extends Seeder
         //         $user->assignRole($roles->random());
         //     });
 
+        if (User::exists()) {
+            return;
+        }
+
         //create a admin user
         $admin = User::create([
             'first_name' => 'Docusphere',
