@@ -15,6 +15,7 @@ class RolePermissionSeeder extends Seeder
     public function run(): void
     {
         if (Role::exists()) {
+            $this->command->info('Roles already exists');
             return;
         }
 

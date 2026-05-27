@@ -3,15 +3,19 @@ set -e
 
 cd /var/www/html
 
-# Cache config/routes
+php artisan config:clear
+php artisan route:clear
+
 php artisan config:cache
 php artisan route:cache
 
-# Run migrations
 php artisan migrate --force
 
-# Start PHP-FPM in background
+php artisan db:seed --force
+
 php-fpm -D
 
-# Start Nginx in foreground
+sleep 5
+netstat -tlnp | grep 9000 || echo "PHP-FPM NOT listening on 9000"
+
 nginx -g "daemon off;"

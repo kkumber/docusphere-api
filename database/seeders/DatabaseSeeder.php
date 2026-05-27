@@ -30,11 +30,12 @@ class DatabaseSeeder extends Seeder
         //     });
 
         if (User::exists()) {
+            $this->command->info('Users already exist. Skipping seeding.');
             return;
         }
 
         //create a admin user
-        $admin = User::create([
+        $admin = User::firstOrCreate([
             'first_name' => 'Docusphere',
             'last_name' => 'Admin',
             'email' => 'docusphere@admin.com',
@@ -48,7 +49,7 @@ class DatabaseSeeder extends Seeder
         $admin->assignRole('admin');
 
         // create a records system user
-        $records = User::create([
+        $records = User::firstOrCreate([
             'first_name' => 'Records',
             'last_name' => 'Office',
             'email' => 'docusphere@records.com',
@@ -62,7 +63,7 @@ class DatabaseSeeder extends Seeder
         $records->assignRole('records');
 
         // create demo accounts for other roles
-        $sds = User::create([
+        $sds = User::firstOrCreate([
             'first_name' => 'SDS',
             'last_name' => 'User',
             'email' => 'docusphere@sds.com',
@@ -74,7 +75,7 @@ class DatabaseSeeder extends Seeder
         ]);
         $sds->assignRole('sds');
 
-        $chief = User::create([
+        $chief = User::firstOrCreate([
             'first_name' => 'Chief',
             'last_name' => 'User',
             'email' => 'docusphere@chief.com',
@@ -86,7 +87,7 @@ class DatabaseSeeder extends Seeder
         ]);
         $chief->assignRole('chief');
 
-        $staff = User::create([
+        $staff = User::firstOrCreate([
             'first_name' => 'Staff',
             'last_name' => 'User',
             'email' => 'docusphere@staff.com',

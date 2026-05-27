@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     nginx \
+    net-tools \
     && docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath
 
 # Install Composer
@@ -26,11 +27,12 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 # Permissions
 RUN chown -R www-data:www-data /var/www/html \
-    && chmod -F 755 /var/www/html/storage \
+    && chmod -R 755 /var/www/html/storage \
     && chmod -R 755 /var/www/html/bootstrap/cache
 
 # Nginx config
-COPY ./conf/nginx/nginx-site.conf /etc/nginx/conf.d/default.conf
+COPY ./conf/nginx/nginx-site.conf /etc/nginx/sites-available/default
+RUN ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
 
 # Startup script
 COPY ./docker/start.sh /start.sh

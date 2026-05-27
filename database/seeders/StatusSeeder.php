@@ -15,6 +15,7 @@ class StatusSeeder extends Seeder
     public function run(): void
     {
         if (Status::exists()) {
+            $this->command->info('Statuses already exist. Skipping seeding.');
             return;
         }
 
