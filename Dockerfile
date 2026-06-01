@@ -14,16 +14,26 @@ RUN apt-get update && apt-get install -y \
     unzip \
     nginx \
     net-tools \
-    && docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath
+    && docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath \ 
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+COPY composer.json composer.lock ./
+
+# Install PHP dependencies
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
+
 # Copy application
 COPY . .
 
-# Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+RUN php artisan package:discover --ansi
+
+RUN echo "upload_max_filesize=10M" > /usr/local/etc/php/conf.d/upload.ini && \
+    echo "post_max_size=10M" >> /usr/local/etc/php/conf.d/upload.ini && \
+    echo "memory_limit=128M" >> /usr/local/etc/php/conf.d/upload.ini && \
+    echo "max_execution_time=300" >> /usr/local/etc/php/conf.d/upload.ini
 
 # Permissions
 RUN chown -R www-data:www-data /var/www/html \
