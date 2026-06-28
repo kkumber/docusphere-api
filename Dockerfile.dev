@@ -1,4 +1,4 @@
-FROM php:8.2-cli-alpine
+FROM php:8.2-fpm-alpine
 
 WORKDIR /app
 
@@ -18,21 +18,26 @@ RUN apk add --no-cache \
 # Install PHP extensions
 RUN docker-php-ext-install mbstring curl zip pdo_pgsql pgsql xml fileinfo
 
-
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+COPY composer.json composer.lock ./
+
+# Install PHP dependencies using Composer
+RUN composer install --optimize-autoloader --no-scripts --no-interaction
 
 # Copy application files to the container
 COPY . .
 
-# Install PHP dependencies using Composer
-RUN composer install --no-dev --optimize-autoloader
+RUN php artisan package:discover --ansi
+
 
 # Configure PHP settings for file uploads
 RUN echo "upload_max_filesize=10M" > /usr/local/etc/php/conf.d/upload.ini && \
     echo "post_max_size=10M" >> /usr/local/etc/php/conf.d/upload.ini && \
     echo "memory_limit=128M" >> /usr/local/etc/php/conf.d/upload.ini && \
     echo "max_execution_time=300" >> /usr/local/etc/php/conf.d/upload.ini
+
 
 # Expose the application port
 EXPOSE 8000

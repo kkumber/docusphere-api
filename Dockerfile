@@ -33,7 +33,7 @@ RUN php artisan package:discover --ansi
 RUN echo "upload_max_filesize=10M" > /usr/local/etc/php/conf.d/upload.ini && \
     echo "post_max_size=10M" >> /usr/local/etc/php/conf.d/upload.ini && \
     echo "memory_limit=128M" >> /usr/local/etc/php/conf.d/upload.ini && \
-    echo "max_execution_time=300" >> /usr/local/etc/php/conf.d/upload.ini
+    echo "max_execution_time=600" >> /usr/local/etc/php/conf.d/upload.ini
 
 # Permissions
 RUN chown -R www-data:www-data /var/www/html \
